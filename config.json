@@ -1,0 +1,11 @@
+{
+  "club": "DOMPAVOLEI",
+  "liga": {
+    "archivo": "liga/dompinas-1.json"
+  },
+  "edicion": {
+    "repo": "albovy/liga-dompinas",
+    "cifrada": "v1.600000.QeqDWp904UhqEfqkUAQP4g.xl9ga_9pU_WjJ9KK.qTYK_uwgEjuD4GUV91rxOaU8IVVzboF5U1n4gd8pvZdqZuV1zg_d08R7jKFzYHOvwKizbZxW-IZXXmAkgBmWD0PRWP5BPj7BOLKOFD0iX78RfGtubaVootrQa7OqfBdIiRiCTCTZNcIsQO-J_w"
+  },
+  "calendario": "https://albovy.github.io/calendario-dompavolei/"
+}

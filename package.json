@@ -1,0 +1,12 @@
+{
+  "name": "liga-dompinas",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "generar": "node src/generar.js",
+    "test": "node --test"
+  }
+}

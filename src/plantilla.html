@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+<title>__TITULO__</title>
+__APP__
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C1F25" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+<link rel="stylesheet" href="https://fonts.bunny.net/css?family=barlow:400,500,600|barlow-condensed:500,600,700&amp;display=swap" crossorigin>
+<style>
+/* La página de la Liga Dompiñas (docs/diseno.md): el mismo diseño que la web del calendario del club
+   (albovy/calendario-dompavolei), con sus colores: tinta para lo firme, aguamarina para lo nuestro y lo
+   ganado, ámbar para lo que falta por decidir, y el color de cada categoría en su punto. color-mix() (Safari
+   16.2) lleva antes un color fijo para los iPhone más viejos; overflow-wrap: anywhere (15.4), word-wrap. */
+:root {
+  --fondo: #ECEFF2; --sup: #FFFFFF; --borde: #D5DAE1; --control: #7D8796; --tinta: #121B2E; --tinta2: #4E5866;
+  --marino-t: #1E335F; --agua: #0A7A70; --agua-r: #5EC4B9; --ambar: #955300; --elegido: #121B2E; --elegido-t: #FFFFFF;
+  /* Categorías: los del calendario */
+  --c-benjamin: #7A4FB5; --c-alevin: #2E7D4F; --c-infantil: #2F6FB8; --c-cadete: #C0463A;
+  --c-juvenil: #A8356E;  --c-junior: #6B7A1F; --c-senior: #3D4F72;   --c-otra: #7D6B55;
+  --cond: 'Barlow Condensed', 'Arial Narrow', 'Segoe UI', sans-serif;
+  --txt: 'Barlow', system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #131519; --sup: #1C1F25; --borde: #2C3139; --control: #6B7380; --tinta: #E8EAEE; --tinta2: #A4ABB5;
+    --marino-t: #A9BCE3; --agua: #63D0C3; --agua-r: #5EC4B9; --ambar: #F0B65A; --elegido: #E8EAEE; --elegido-t: #131519;
+    --c-benjamin: #B79BE6; --c-alevin: #7CCB98; --c-infantil: #7FB2EE; --c-cadete: #F08A7E;
+    --c-juvenil: #E68AB8;  --c-junior: #C9CF6B; --c-senior: #A9B8D6;   --c-otra: #CDB99A;
+  }
+}
+[data-cat="benjamin"] { --c: var(--c-benjamin); } [data-cat="alevin"] { --c: var(--c-alevin); }
+[data-cat="infantil"] { --c: var(--c-infantil); } [data-cat="cadete"] { --c: var(--c-cadete); }
+[data-cat="juvenil"] { --c: var(--c-juvenil); } [data-cat="junior"] { --c: var(--c-junior); }
+[data-cat="senior"] { --c: var(--c-senior); } [data-cat="otra"] { --c: var(--c-otra); }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--fondo); color: var(--tinta); font: 400 16px/1.4 var(--txt); }
+a { color: inherit; }
+button, input { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid var(--agua); outline-offset: 2px; border-radius: 4px; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.oculto { display: none !important; }
+.ancho { max-width: 752px; margin: 0 auto; padding: 0 16px; }
+
+/* Barra superior */
+.barra { background: var(--sup); border-bottom: 1px solid var(--borde); }
+.barra .ancho { display: flex; align-items: center; gap: 12px; min-height: 64px; }
+.escudo { flex: none; width: 40px; height: 40px; border-radius: 6px; background: #fff; display: grid; place-items: center; overflow: hidden; }
+.escudo img { width: 36px; height: 36px; object-fit: contain; }
+.marca { min-width: 0; }
+.marca h1 { margin: 0; font: 700 21px/1 var(--cond); letter-spacing: .02em; word-wrap: break-word; overflow-wrap: anywhere; }
+.marca p { margin: 3px 0 0; font: 500 14px/1 var(--txt); color: var(--tinta2); }
+.btn-cal {
+  margin-left: auto; flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1.5px solid var(--tinta);
+  border-radius: 10px; color: var(--tinta); text-decoration: none; font: 600 16px/1 var(--cond); letter-spacing: .03em;
+}
+
+/* Pestañas */
+.pestanas { background: var(--sup); border-bottom: 1px solid var(--borde); }
+.pestanas .ancho { display: flex; gap: 24px; }
+.pestanas button {
+  margin-bottom: -1px; padding: 14px 0 11px; border: 0; border-bottom: 3px solid transparent; background: none; cursor: pointer;
+  color: var(--tinta2); font: 600 17px/1 var(--cond); letter-spacing: .03em;
+}
+.pestanas button[aria-pressed="true"] { color: var(--tinta); border-bottom-color: var(--agua-r); }
+.pestanas button:focus-visible { outline-offset: -3px; }
+
+/* «Mi equipo»: los equipos en chips (fila fija arriba). En Partidos, solo los suyos; en la clasificación, resaltado. */
+.fijos { position: -webkit-sticky; position: sticky; top: 0; z-index: 5; background: var(--fondo); border-bottom: 1px solid var(--borde); }
+.chips { position: relative; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 10px 28px 10px 0; }
+.chips { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none; display: inline-flex; align-items: center; gap: 7px; min-width: 44px; min-height: 44px; padding: 0 14px; border-radius: 10px;
+  border: 1.5px solid var(--control); background: var(--sup); color: var(--tinta); font: 600 16px/1 var(--cond); letter-spacing: .02em;
+  cursor: pointer; white-space: nowrap;
+}
+.chip[aria-pressed="true"] { background: var(--elegido); border-color: var(--elegido); color: var(--elegido-t); }
+.punto { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+.punto.hueco { background: none; box-shadow: inset 0 0 0 1.5px var(--control); }
+
+main { display: block; padding-bottom: 32px; }
+.tab-h { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 20px 0 8px; }
+.tab-h h2 { margin: 0; font: 600 14px/1.2 var(--cond); letter-spacing: .12em; text-transform: uppercase; color: var(--tinta2); }
+.tab-h .nota { font: 500 14px/1.2 var(--txt); color: var(--tinta2); text-align: right; }
+.nota-p { margin: 6px 0 0; font-size: 14px; color: var(--tinta2); }
+.nota-p.amb { color: var(--ambar); font-weight: 600; }
+
+/* Clasificación */
+.tabla-envoltura { overflow-x: auto; }
+.tabla-clas { width: 100%; border-collapse: collapse; background: var(--sup); font: 500 16px/1.2 var(--cond); font-variant-numeric: tabular-nums; }
+.tabla-clas th {
+  padding: 8px 6px; border-bottom: 1px solid var(--borde); text-align: center; color: var(--tinta2);
+  font: 700 12px/1 var(--cond); letter-spacing: .1em; text-transform: uppercase;
+}
+.tabla-clas td { padding: 10px 6px; border-bottom: 1px solid var(--borde); text-align: center; }
+.tabla-clas th.eq, .tabla-clas td.eq { width: 100%; text-align: left; }
+.tabla-clas td.eq { font-weight: 600; }
+.tabla-clas td.eq .punto { display: inline-block; margin-right: 7px; vertical-align: 1px; }
+.tabla-clas td.pts { font-weight: 700; font-size: 18px; }
+.tabla-clas td.pos { font-weight: 700; white-space: nowrap; }
+.tabla-clas .emp { color: var(--ambar); }
+/* La raya bajo el 4.º: hasta ahí, semifinales. */
+.tabla-clas tr.corte td { border-bottom: 2px solid var(--tinta2); }
+.tabla-clas tr.nuestro td { background: rgba(94, 196, 185, .16); background: color-mix(in srgb, var(--agua-r) 16%, var(--sup)); font-weight: 700; }
+.tabla-clas tr.nuestro td:first-child { box-shadow: inset 4px 0 0 var(--agua-r); }
+.leyenda { margin: 8px 0 0; font-size: 14px; color: var(--tinta2); }
+/* Clasificación final */
+.podio { margin: 0; padding: 0; list-style: none; background: var(--sup); border: 1px solid var(--borde); border-radius: 12px; overflow: hidden; }
+.podio li { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-top: 1px solid var(--borde); font: 600 18px/1.2 var(--cond); }
+.podio li:first-child { border-top: 0; background: rgba(94, 196, 185, .16); background: color-mix(in srgb, var(--agua-r) 16%, var(--sup)); font-size: 21px; }
+.podio .pp { min-width: 34px; font-weight: 700; color: var(--tinta2); }
+.podio li:first-child .pp { color: var(--agua); }
+.podio .copa { margin-left: auto; color: var(--agua); }
+
+/* Playoffs: un cuadro por cruce */
+.cuadro { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 10px; }
+.cruce { padding: 12px 14px; background: var(--sup); border: 1px solid var(--borde); border-radius: 12px; }
+.cruce.amistoso { background: transparent; border-style: dashed; }
+.cruce-t { margin: 0; font: 700 17px/1.2 var(--cond); letter-spacing: .02em; }
+.cruce-f { margin: 2px 0 8px; font: 500 14px/1.2 var(--txt); color: var(--tinta2); }
+
+/* Jornadas y partidos */
+.jornada { margin-top: 18px; }
+.jor-cab {
+  margin: 0 0 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  font: 600 16px/1.2 var(--cond); letter-spacing: .08em; text-transform: uppercase;
+}
+.jor-cab .nota { font: 500 15px/1.2 var(--txt); letter-spacing: 0; text-transform: none; color: var(--tinta2); text-align: right; }
+.jor-cab .nota.prox { color: var(--agua); font-weight: 600; }
+.jornada.pasada .jor-cab { color: var(--tinta2); }
+.fila {
+  display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 0 12px; align-items: start;
+  padding: 13px 12px; background: var(--sup); border-bottom: 1px solid var(--borde);
+}
+.fila.jugada, .fila.anulada { background: transparent; }
+.hora .h { display: block; font: 700 24px/1 var(--cond); font-variant-numeric: tabular-nums; }
+.fila.anulada .h { color: var(--tinta2); text-decoration: line-through; }
+.hora .ph { display: block; margin-top: 4px; font: 500 13px/1.2 var(--txt); color: var(--tinta2); }
+.hora .prox-fila { display: block; margin-top: 4px; font: 600 13px/1 var(--cond); letter-spacing: .06em; text-transform: uppercase; color: var(--agua); }
+.hora .otro-dia { display: block; margin-bottom: 4px; font: 700 13px/1 var(--cond); letter-spacing: .06em; text-transform: uppercase; color: var(--ambar); }
+.info { min-width: 0; }
+.fase-t { display: block; margin: 0 0 5px; font: 600 13px/1 var(--cond); letter-spacing: .1em; text-transform: uppercase; color: var(--marino-t); }
+/* Los dos equipos de un partido (en las filas y en el cuadro): el que gana, en negrita; sus puntos y sus sets. */
+.equipos { display: grid; gap: 4px; }
+.lado { display: flex; align-items: baseline; gap: 7px; min-width: 0; font: 500 17px/1.2 var(--cond); letter-spacing: .02em; color: var(--tinta2); }
+.lado .punto { align-self: center; }
+.lado.gana { font-weight: 700; color: var(--tinta); }
+.lado.nuestro .nom { text-decoration: underline; text-decoration-color: var(--agua-r); text-decoration-thickness: 3px; text-underline-offset: 4px; }
+.lado.por-saber { color: var(--ambar); }
+.lado .nom { min-width: 0; word-wrap: break-word; overflow-wrap: anywhere; }
+.lado .ahora { display: block; font: 500 13px/1.25 var(--txt); letter-spacing: 0; color: var(--tinta2); }
+.lado .ptsl { margin-left: auto; padding-left: 8px; font: 600 14px/1 var(--cond); letter-spacing: .02em; color: var(--tinta2); white-space: nowrap; }
+.lado .tanteo { margin-left: auto; padding-left: 10px; font: 700 20px/1 var(--cond); font-variant-numeric: tabular-nums; }
+.lado .ptsl + .tanteo { margin-left: 0; }
+.lado.gana .ptsl { color: var(--agua); }
+.sets { margin: 6px 0 0; font: 600 15px/1.2 var(--cond); letter-spacing: .03em; font-variant-numeric: tabular-nums; color: var(--tinta2); }
+.nota-am { margin: 6px 0 0; font: 500 14px/1.3 var(--txt); color: var(--tinta2); }
+.pendiente { margin: 6px 0 0; font: 600 14px/1.3 var(--txt); color: var(--ambar); }
+.vacio { margin: 24px 0; padding: 24px 16px; border: 1.5px dashed var(--control); border-radius: 12px; text-align: center; color: var(--tinta2); }
+.vacio p { margin: 0; }
+
+/* Normas */
+.normas { margin: 0; padding: 14px 16px 14px 36px; background: var(--sup); border: 1px solid var(--borde); border-radius: 12px; }
+.normas li { margin: 6px 0; }
+.valor { max-width: 420px; }
+.valor th[scope="row"] { text-align: left; color: var(--tinta); font: 600 16px/1.2 var(--cond); letter-spacing: .02em; text-transform: none; }
+
+/* Modo entrenador: avisos, botones, editor del resultado y lo que pasó al guardar (campos a 16 px o más: el iPhone
+   no amplía la página al tocarlos). */
+.avisos-ent { margin: 16px 0 0; padding: 10px 12px; border: 1.5px solid var(--ambar); border-radius: 10px; font-size: 15px; }
+.avisos-ent ul { margin: 4px 0 0; padding-left: 18px; }
+.avisos-t { margin: 0; font: 600 16px/1.2 var(--cond); letter-spacing: .03em; color: var(--ambar); }
+.acc { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.boton-p {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 12px; white-space: nowrap; cursor: pointer;
+  border-radius: 999px; border: 1.5px solid var(--control); background: var(--sup); color: var(--tinta); font: 600 14px/1 var(--cond); letter-spacing: .02em;
+}
+.boton {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 10px;
+  border: 1.5px solid var(--control); background: var(--sup); color: var(--tinta); text-decoration: none; cursor: pointer;
+  font: 600 16px/1 var(--cond); letter-spacing: .03em;
+}
+.boton.principal { background: var(--elegido); border-color: var(--elegido); color: var(--elegido-t); }
+.boton[disabled] { opacity: .6; cursor: progress; }
+.editor-res { grid-column: 1 / -1; margin-top: 10px; padding: 10px 12px; border: 1.5px solid var(--control); border-radius: 10px; }
+.er-t { margin: 0 0 6px; font: 600 16px/1.2 var(--cond); letter-spacing: .03em; }
+.er-tabla { border-collapse: collapse; width: 100%; max-width: 420px; }
+.er-tabla th { padding: 4px 6px 4px 0; text-align: left; font: 600 14px/1.15 var(--cond); letter-spacing: .02em; color: var(--tinta2); }
+.er-tabla thead th { word-wrap: break-word; overflow-wrap: anywhere; }
+.er-tabla th small { font: 500 13px/1 var(--txt); }
+.er-tabla td { padding: 4px 6px 4px 0; }
+.er-n {
+  width: 100%; min-width: 64px; min-height: 44px; padding: 0 10px; border: 1.5px solid var(--control); border-radius: 10px; background: var(--sup);
+  color: var(--tinta); font: 700 22px/1 var(--cond); font-variant-numeric: tabular-nums; -moz-appearance: textfield; appearance: textfield;
+}
+.er-n::-webkit-inner-spin-button, .er-n::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.es-botones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.es-pista { margin: 8px 0 0; font: 500 15px/1.35 var(--txt); color: var(--tinta2); }
+.es-pista:empty { display: none; }
+.es-pista.mal { color: var(--ambar); font-weight: 600; }
+/* Borrar: la pregunta, aparte y más abajo (un doble toque en «Borrar resultado» no la contesta). */
+.er-confirma { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--borde); }
+.er-confirma p { margin: 0; font: 600 15px/1.35 var(--txt); color: var(--ambar); }
+.aviso-res { grid-column: 1 / -1; margin: 8px 0 0; font: 500 15px/1.35 var(--txt); }
+.aviso-res.ok { color: var(--agua); }
+.aviso-res.mal { color: var(--ambar); font-weight: 600; }
+.ayuda-cal { margin-bottom: 14px; font-size: 15px; color: var(--tinta2); }
+.ayuda-cal summary { cursor: pointer; padding: 6px 0; color: var(--tinta); font: 600 16px/1.2 var(--cond); letter-spacing: .03em; }
+.llave-fila { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.llave {
+  flex: 1 1 220px; min-width: 0; min-height: 44px; padding: 0 12px; border: 1.5px solid var(--control); border-radius: 10px;
+  background: var(--sup); color: var(--tinta); font: 400 16px/1 var(--txt);
+}
+.llave-msg { margin: 8px 0 0; color: var(--tinta); }
+.llave-msg:empty { display: none; }
+.llave-msg:focus { outline: none; }
+.enlace-boton {
+  display: block; margin-top: 12px; padding: 6px 0; border: 0; background: none; cursor: pointer; color: var(--tinta2);
+  font: 500 15px/1.3 var(--txt); text-decoration: underline; text-underline-offset: 3px;
+}
+
+footer { border-top: 1px solid var(--borde); padding: 22px 0 40px; font-size: 14px; color: var(--tinta2); }
+footer p { margin: 0; }
+</style>
+</head>
+<body>
+<header class="barra">
+  <div class="ancho">
+    <span class="escudo oculto" id="escudo"></span>
+    <div class="marca">
+      <h1 id="titulo"></h1>
+      <p id="subtitulo"></p>
+    </div>
+    <a class="btn-cal oculto" id="volver" href="#">Calendario</a>
+  </div>
+</header>
+
+<nav class="pestanas" aria-label="Secciones">
+  <div class="ancho">
+    <button type="button" id="tab-clas" aria-pressed="false">Clasificación</button>
+    <button type="button" id="tab-partidos" aria-pressed="false">Partidos</button>
+    <button type="button" id="tab-normas" aria-pressed="false">Normas</button>
+  </div>
+</nav>
+
+<div class="fijos" id="fijos">
+  <div class="ancho">
+    <div class="chips" id="chips" role="group" aria-label="Mi equipo"></div>
+  </div>
+</div>
+
+<main>
+  <div class="ancho" id="contenido"></div>
+</main>
+
+<footer>
+  <div class="ancho">
+    <!-- Modo entrenador (con config.json › edicion): la misma llave o contraseña que en el calendario. -->
+    <details class="ayuda-cal oculto" id="entrenador">
+      <summary>Modo entrenador: poner resultados</summary>
+      <p id="entrenador-texto"></p>
+      <div class="llave-fila" id="llave-fila">
+        <label class="sr-only" for="llave">Contraseña o llave de entrenador</label>
+        <input type="password" id="llave" class="llave" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Contraseña">
+        <button type="button" class="boton principal" id="guardar-llave">Activar</button>
+      </div>
+      <p class="llave-msg" id="llave-msg" role="status" tabindex="-1"></p>
+      <button type="button" class="enlace-boton oculto" id="quitar-llave">Quitar la llave de este navegador</button>
+    </details>
+    <p id="pie"></p>
+  </div>
+</footer>
+
+<p class="sr-only" id="estado" role="status" aria-live="polite"></p>
+
+<script id="datos" type="application/json">__DATOS__</script>
+<script>
+// La página de la Liga Dompiñas. Los datos (D) los pone pagina.js (crearPagina): la liga ya calculada por
+// liga.js (clasificación, partidos con sus equipos y resultados, cruces de playoffs), más el escudo. Se pinta
+// todo desde D; con la llave de entrenador, cada partido ya jugado con sus dos equipos sabidos tiene «Poner
+// resultado», que lanza resultado.yml (guarda el resultado y vuelve a publicar la web).
+(function () {
+  'use strict';
+  var D = JSON.parse(document.getElementById('datos').textContent);
+  function $(id) { return document.getElementById(id); }
+  var ENTIDADES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return ENTIDADES[c]; }); }
+  function propia(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
+
+  var EQ = {};
+  D.equipos.forEach(function (q) { EQ[q.id] = q; });
+  function nombre(id) { return propia(EQ, id) ? EQ[id].n : ''; }
+  // El color de un equipo: el de su categoría si es una de las del calendario; si no, «otra».
+  var COLORES = ['benjamin', 'alevin', 'infantil', 'cadete', 'juvenil', 'junior', 'senior'];
+  function cat(id) { var c = propia(EQ, id) ? EQ[id].cat : ''; return COLORES.indexOf(c) >= 0 ? c : 'otra'; }
+  function nivel(id) { return propia(EQ, id) && propia(D.cats, EQ[id].cat) ? D.cats[EQ[id].cat].nv : 0; }
+  // Lo que vale un set (como liga.js): 1, y 1 más por cada categoría de diferencia si lo gana el de categoría menor.
+  function puntosSet(ganador, perdedor) { return 1 + Math.max(0, nivel(perdedor) - nivel(ganador)); }
+
+  var DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  var DIAS_C = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+  var MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  function dia(f) { return new Date(+f.slice(0, 4), +f.slice(5, 7) - 1, +f.slice(8, 10)); }
+  function fechaLarga(f) { var d = dia(f); return DIAS[d.getDay()] + ' ' + d.getDate() + ' de ' + MESES[d.getMonth()]; }
+  function fechaCorta(f) { var d = dia(f); return DIAS_C[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth() + 1); }
+  function dos(n) { return (n < 10 ? '0' : '') + n; }
+  var ahora = new Date();
+  var HOY = ahora.getFullYear() + '-' + dos(ahora.getMonth() + 1) + '-' + dos(ahora.getDate());
+
+  // Los partidos que cuentan para la clasificación (ni amistosos ni anulados) y cuántos tienen ya resultado.
+  var cuentan = D.partidos.filter(function (p) { return p.cu; });
+  var jugados = cuentan.filter(function (p) { return p.r; }).length;
+
+  // Pestaña y equipo elegido (se recuerdan en este navegador). Sin resultados aún, se empieza por los partidos.
+  var CLAVE = 'calendario-voley:' + D.club;
+  var CLAVE_LIGA = CLAVE + ':liga';
+  var st = { sec: jugados ? 'clas' : 'partidos', eq: '' };
+  try {
+    var g = JSON.parse(localStorage.getItem(CLAVE_LIGA) || 'null');
+    if (g && /^(clas|partidos|normas)$/.test(g.sec)) st.sec = g.sec;
+    if (g && typeof g.eq === 'string' && propia(EQ, g.eq)) st.eq = g.eq;
+  } catch (e) { /* sin almacenamiento, o lo guardado no vale */ }
+  function recordar() {
+    try { localStorage.setItem(CLAVE_LIGA, JSON.stringify({ sec: st.sec, eq: st.eq })); } catch (e) { /* sin almacenamiento */ }
+  }
+
+  // --- Cabecera y pie ---------------------------------------------------------------------------------------
+  $('titulo').textContent = D.nombre;
+  $('subtitulo').textContent = D.club + ' · temporada ' + D.temporada;
+  if (D.escudo) {
+    $('escudo').innerHTML = '<img src="' + esc(D.escudo) + '" alt="">';
+    $('escudo').classList.remove('oculto');
+  }
+  if (D.calendario) {
+    $('volver').href = D.calendario;
+    $('volver').classList.remove('oculto');
+  }
+  $('pie').textContent = 'Liga interna del ' + D.club + ' entre sus equipos. Resultados actualizados el ' + D.generado + '.';
+
+  // La fila de chips se queda fija arriba: se reserva su alto (más 8 px) para que, al llegar con el teclado a algo
+  // que está más arriba, no lo tape (WCAG 2.2, 2.4.11). Como en el calendario.
+  var fijos = $('fijos');
+  function reservaFijos() { document.documentElement.style.scrollPaddingTop = ((fijos.offsetHeight || 0) + 8) + 'px'; }
+  if (window.ResizeObserver) new window.ResizeObserver(function () { reservaFijos(); }).observe(fijos);
+  else window.addEventListener('resize', reservaFijos);
+
+  // --- Lo que se pinta --------------------------------------------------------------------------------------
+  // Un equipo de un partido: su nombre (o, si aún no se sabe, «1.º clasificado» y quién sería ahora), sus puntos
+  // de liga y sus sets.
+  function lineaEquipo(p, lado) {
+    var x = p[lado], r = p.r;
+    var gana = !!r && r.g === (lado === 'l' ? 'local' : 'visitante');
+    var clases = 'lado' + (gana ? ' gana' : '') + (x.id && x.id === st.eq ? ' nuestro' : '') + (x.id ? '' : ' por-saber');
+    var h = '<div class="' + clases + '" data-cat="' + (x.id ? cat(x.id) : 'otra') + '"><span class="punto' + (x.id ? '' : ' hueco') + '"></span>' +
+      '<span class="nom">' + esc(x.id ? nombre(x.id) : x.t);
+    if (!x.id && x.a && jugados) h += '<span class="ahora">ahora, ' + esc(nombre(x.a)) + '</span>';
+    h += '</span>';
+    var pts = r && p.cu ? (lado === 'l' ? r.pl : r.pv) : null;
+    if (pts !== null) h += '<span class="ptsl">' + (pts ? '+' : '') + pts + ' pts</span>';
+    if (r) h += '<span class="tanteo">' + (lado === 'l' ? r.sl : r.sv) + '</span>';
+    return h + '</div>';
+  }
+  function textoSets(sets) { return sets.map(function (s) { return s[0] + '-' + s[1]; }).join(' · '); }
+  function lineaSets(p) { return p.r ? '<p class="sets">Sets: ' + textoSets(p.r.sets) + '</p>' : ''; }
+  function pendiente(p) {
+    if (!p.enviado) return '';
+    return '<p class="pendiente">Enviado, se publica en 2 o 3 minutos: ' + (p.enviado.sets ? textoSets(p.enviado.sets) : 'resultado borrado') + '.</p>';
+  }
+
+  // Chips de equipos: se crean una vez y luego solo cambia su estado (así no se pierde el foco). chip-0: «Todos».
+  $('chips').innerHTML = '<button type="button" class="chip" id="chip-0" data-eq="">Todos</button>' + D.equipos.map(function (q, k) {
+    return '<button type="button" class="chip" id="chip-' + (k + 1) + '" data-eq="' + esc(q.id) + '" data-cat="' + cat(q.id) + '">' +
+      '<span class="punto" aria-hidden="true"></span>' + esc(q.n) + '</button>';
+  }).join('');
+  function marcarChips() {
+    $('chip-0').setAttribute('aria-pressed', String(!st.eq));
+    D.equipos.forEach(function (q, k) { $('chip-' + (k + 1)).setAttribute('aria-pressed', String(st.eq === q.id)); });
+  }
+
+  // Los avisos de la publicación (un resultado que ya no cuenta...), solo para los entrenadores.
+  function avisosEntrenador() {
+    var a = D.avisos || [];
+    if (!llave || !a.length) return '';
+    return '<div class="avisos-ent" role="note"><p class="avisos-t">Avisos para los entrenadores</p><ul>' +
+      a.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul></div>';
+  }
+
+  function htmlClasificacion() {
+    var h = '';
+    if (D.final) {
+      h += '<div class="tab-h"><h2>Clasificación final</h2></div><ol class="podio">';
+      D.final.forEach(function (id, i) {
+        h += '<li data-cat="' + cat(id) + '"><span class="pp">' + (i + 1) + '.º</span><span class="punto"></span>' + esc(nombre(id)) +
+          (i === 0 ? '<span class="copa">Campeón</span>' : '') + '</li>';
+      });
+      h += '</ol>';
+    }
+    h += '<div class="tab-h"><h2>' + (D.final ? 'Fase regular' : 'Clasificación') + '</h2><span class="nota">' +
+      (D.terminada ? 'Fase regular terminada' : jugados + ' de ' + cuentan.length + ' partidos jugados') + '</span></div>';
+    h += '<div class="tabla-envoltura"><table class="tabla-clas"><thead><tr>' +
+      '<th scope="col"><span class="sr-only">Puesto</span>#</th><th scope="col" class="eq">Equipo</th>' +
+      '<th scope="col"><abbr title="Partidos jugados">PJ</abbr></th><th scope="col"><abbr title="Sets ganados">SG</abbr></th>' +
+      '<th scope="col"><abbr title="Sets perdidos">SP</abbr></th><th scope="col"><abbr title="Diferencia de tantos">Dif</abbr></th>' +
+      '<th scope="col"><abbr title="Puntos de liga">Pts</abbr></th></tr></thead><tbody>';
+    // Empatados a puntos y a tantos: se marcan al acabar la fase regular (antes, a mitad de liga, no deciden nada).
+    var empates = false;
+    D.clas.forEach(function (f) {
+      var emp = f.emp && D.terminada;
+      if (emp) empates = true;
+      h += '<tr class="' + (f.pos === 4 && D.clas.length > 4 ? 'corte' : '') + (f.id === st.eq ? ' nuestro' : '') + '">' +
+        '<td class="pos">' + f.pos + (emp ? '<span class="emp" aria-hidden="true">=</span><span class="sr-only"> (empatado)</span>' : '') + '</td>' +
+        '<td class="eq" data-cat="' + cat(f.id) + '"><span class="punto"></span>' + esc(nombre(f.id)) + '</td>' +
+        '<td>' + f.pj + '</td><td>' + f.sg + '</td><td>' + f.sp + '</td><td>' + (f.dif > 0 ? '+' : '') + f.dif + '</td>' +
+        '<td class="pts">' + f.pts + '</td></tr>';
+    });
+    h += '</tbody></table></div>';
+    h += '<p class="leyenda">Del 1.º al 4.º, a semifinales; el 5.º y el 6.º juegan por el 5.º puesto. A igualdad de puntos, la diferencia de tantos.</p>';
+    if (empates) h += '<p class="nota-p amb">= Empatados a puntos y a diferencia de tantos: se decide con un partido de desempate.</p>';
+    h += '<div class="tab-h"><h2>Playoffs</h2><span class="nota">Partido único, sin coeficiente: pasa quien gana más sets</span></div>';
+    if (!D.terminada && jugados) h += '<p class="nota-p">Hasta que acabe la fase regular, debajo de cada puesto sale quién lo ocupa ahora.</p>';
+    h += '<div class="cuadro">';
+    D.partidos.forEach(function (p) {
+      if (p.reg) return;
+      h += '<article class="cruce' + (p.am ? ' amistoso' : '') + '"><p class="cruce-t">' + esc(p.nom || p.fase) + '</p>' +
+        '<p class="cruce-f">' + fechaCorta(p.f) + ' · ' + esc(p.h) + (p.am ? ' · amistoso' : '') + '</p>' +
+        '<div class="equipos">' + lineaEquipo(p, 'l') + lineaEquipo(p, 'v') + '</div>' + lineaSets(p) + '</article>';
+    });
+    return h + '</div>';
+  }
+
+  // ¿Sale este partido con el equipo elegido? (En los cruces aún sin decidir, si ahora le tocaría.)
+  function delEquipo(p) {
+    if (!st.eq) return true;
+    return [p.l, p.v].some(function (x) { return x.id === st.eq || (!x.id && x.a === st.eq && jugados); });
+  }
+  // Las jornadas, por su número (aunque el archivo no venga en orden), con su fecha: la de la mayoría de sus partidos
+  // (un partido aplazado lleva la suya en la fila).
+  function jornadas() {
+    var porNumero = {}, lista = [];
+    D.partidos.forEach(function (p) {
+      if (!propia(porNumero, p.j)) { porNumero[p.j] = { j: p.j, ps: [] }; lista.push(porNumero[p.j]); }
+      porNumero[p.j].ps.push(p);
+    });
+    lista.sort(function (a, b) { return a.j - b.j; });
+    lista.forEach(function (x) {
+      var veces = {};
+      x.ps.forEach(function (p) { veces[p.f] = (veces[p.f] || 0) + 1; });
+      x.f = Object.keys(veces).sort(function (a, b) { return veces[b] - veces[a] || (a < b ? -1 : 1); })[0];
+    });
+    return lista;
+  }
+  function htmlPartidos() {
+    var porJornada = jornadas();
+    // Pendiente: un partido de hoy en adelante aún sin resultado. La próxima: el primer día con alguno de los que se ven
+    // («Mi equipo»). Lleva la marca la jornada de ese día; un partido aplazado a ese día, en su fila.
+    function pendienteDeJugar(p) { return !p.r && !p.an && p.f >= HOY; }
+    var proxima = null;
+    D.partidos.forEach(function (p) { if (delEquipo(p) && pendienteDeJugar(p) && (proxima === null || p.f < proxima)) proxima = p.f; });
+    var h = '<div class="tab-h"><h2>Partidos</h2><span class="nota">' + (st.eq ? esc(nombre(st.eq)) : 'Todos los equipos') + '</span></div>';
+    var hay = false;
+    porJornada.forEach(function (x) {
+      var ps = x.ps.filter(delEquipo);
+      if (!ps.length) return;
+      hay = true;
+      // (La fase de la jornada no: en los playoffs, cada partido lleva su nombre.)
+      var nota = x.f === proxima && ps.some(function (p) { return p.f === proxima; }) ? '<span class="nota prox">Próxima</span>' : '';
+      var pasada = x.ps.every(function (p) { return p.f < HOY; });
+      h += '<section class="jornada' + (pasada ? ' pasada' : '') + '"><h3 class="jor-cab"><span>Jornada ' + x.j + ' · ' + fechaLarga(x.f) + '</span>' + nota + '</h3>';
+      ps.forEach(function (p) { h += filaPartido(p, x.f, p.f === proxima && p.f !== x.f && pendienteDeJugar(p)); });
+      h += '</section>';
+    });
+    return h + (hay ? '' : '<div class="vacio"><p>No hay partidos de este equipo.</p></div>');
+  }
+  // fechaJornada: la de la cabecera; si el partido es otro día (aplazado), lo dice en la fila (y, si es el próximo,
+  // «Próxima»: prox).
+  function filaPartido(p, fechaJornada, prox) {
+    var i = D.partidos.indexOf(p);
+    return '<article class="fila' + (p.r ? ' jugada' : '') + (p.an ? ' anulada' : '') + '" id="p-' + esc(p.id) + '" data-i="' + i + '">' +
+      '<div class="hora">' + (p.f !== fechaJornada ? '<span class="otro-dia">' + fechaCorta(p.f) + '</span>' : '') +
+      '<span class="h">' + esc(p.h) + '</span>' + (p.fin ? '<span class="ph">a ' + esc(p.fin) + '</span>' : '') +
+      (prox ? '<span class="prox-fila">Próxima</span>' : '') + '</div>' +
+      '<div class="info">' + (p.nom ? '<span class="fase-t">' + esc(p.nom) + '</span>' : '') +
+      '<div class="equipos">' + lineaEquipo(p, 'l') + lineaEquipo(p, 'v') + '</div>' + lineaSets(p) +
+      (p.an ? '<p class="nota-am">Anulado: no se juega y no cuenta para la clasificación.</p>'
+        : p.am ? '<p class="nota-am">Amistoso: no cuenta para la clasificación.</p>' : '') + pendiente(p) + '</div>' +
+      botonResultado(p, i) + editorResultado(p, i) + '</article>';
+  }
+
+  function htmlNormas() {
+    var h = '<div class="tab-h"><h2>Normas</h2></div><ol class="normas">';
+    D.normas.forEach(function (n) { h += '<li>' + esc(n) + '</li>'; });
+    h += '</ol>';
+    // Lo que vale un set según quién gana y quién pierde.
+    var cats = Object.keys(D.cats).sort(function (a, b) { return D.cats[a].nv - D.cats[b].nv; });
+    h += '<div class="tab-h"><h2>Cuánto vale cada set</h2></div><div class="tabla-envoltura"><table class="tabla-clas valor"><thead><tr>' +
+      '<th scope="col" class="eq">Gana ↓ · pierde →</th>';
+    cats.forEach(function (c) { h += '<th scope="col">' + esc(D.cats[c].n) + '</th>'; });
+    h += '</tr></thead><tbody>';
+    cats.forEach(function (g) {
+      h += '<tr><th scope="row">' + esc(D.cats[g].n) + '</th>';
+      cats.forEach(function (c) { h += '<td>' + (1 + Math.max(0, D.cats[c].nv - D.cats[g].nv)) + '</td>'; });
+      h += '</tr>';
+    });
+    return h + '</tbody></table></div><p class="leyenda">En puntos de liga, en la fase regular. En los playoffs no cuenta la categoría.</p>';
+  }
+
+  // Pinta la pestaña elegida; foco: el id del elemento que se queda con el foco (si sigue ahí).
+  function pintar(foco) {
+    ['clas', 'partidos', 'normas'].forEach(function (s) { $('tab-' + s).setAttribute('aria-pressed', String(st.sec === s)); });
+    marcarChips();
+    fijos.classList.toggle('oculto', st.sec === 'normas');
+    $('contenido').innerHTML = avisosEntrenador() + (st.sec === 'clas' ? htmlClasificacion() : st.sec === 'partidos' ? htmlPartidos() : htmlNormas());
+    reservaFijos();
+    if (foco && $(foco) && $(foco).focus) $(foco).focus();
+  }
+
+  // --- Modo entrenador: poner resultados ---------------------------------------------------------------------
+  // La llave es la del calendario del club (un token de GitHub de grano fino que solo puede lanzar los workflows de
+  // sus repositorios: el del calendario y este), guardada en este navegador para albovy.github.io con el nombre del
+  // club: quien la puso en el calendario ya la tiene aquí. Aquí se entra igual, con la contraseña de los entrenadores
+  // (descifra la llave cifrada de config.json) o pegando la llave.
+  var edicion = D.edicion || null;
+  var CLAVE_LLAVE = CLAVE + ':llave';
+  var CLAVE_LLAVE_DE = CLAVE_LLAVE + '-de';
+  var RE_LLAVE = /^github_pat_\w{20,}$/;
+  var RE_CIFRADA = /^v1\.(\d{4,7})\.([\w-]{22})\.([\w-]{16})\.([\w-]{40,600})$/;
+  var cifrada = edicion && RE_CIFRADA.test(edicion.cifrada || '') ? edicion.cifrada : '';
+  var llave = '', llaveDe = '';
+  var editando = null;      // el partido con el editor abierto
+  var escritos = null;      // lo escrito en el editor: al repintar se queda
+  var enviando = false;
+  var borrarPedido = false; // «Borrar resultado» pulsado: se pregunta aparte
+  var llaveOtra = false;    // en el navegador hay una llave de otra contraseña (la del calendario, si la cambiaron allí)
+  function olvidarLlave() {
+    llave = ''; llaveDe = ''; editando = null; escritos = null; borrarPedido = false;
+    try { localStorage.removeItem(CLAVE_LLAVE); localStorage.removeItem(CLAVE_LLAVE_DE); } catch (e) { /* sin almacenamiento */ }
+  }
+  if (edicion) {
+    try { llave = localStorage.getItem(CLAVE_LLAVE) || ''; llaveDe = localStorage.getItem(CLAVE_LLAVE_DE) || ''; } catch (e) { /* sin almacenamiento */ }
+    // Una llave de otra contraseña (esta página puede ser una copia de antes de cambiarla) no se usa aquí, pero
+    // tampoco se borra: la que vale la decide el calendario. Una que no tiene la forma de las de verdad, sí.
+    if (!RE_LLAVE.test(llave)) olvidarLlave();
+    else if (llaveDe && llaveDe !== 'directa' && llaveDe !== cifrada) { llave = ''; llaveDe = ''; llaveOtra = true; }
+  }
+  function urlWorkflow() { return 'https://api.github.com/repos/' + edicion.repo + '/actions/workflows/' + encodeURIComponent(edicion.workflow); }
+  function cabecerasApi(l) { return { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + l, 'X-GitHub-Api-Version': '2022-11-28' }; }
+  // Se pone el resultado de los partidos ya jugados (de hoy hacia atrás) con sus dos equipos sabidos y no anulados.
+  function editable(p) { return !!(edicion && llave && p.l.id && p.v.id && !p.an && p.f <= HOY); }
+  // Un resultado guardado que no cuenta (de otros equipos, de un partido anulado...; p.g) se puede borrar aunque el
+  // partido no se pueda editar. Si ya se mandó algo, ya no hace falta.
+  function puedeBorrarGuardado(p) { return !!(edicion && llave && p.g && !p.enviado && p.f <= HOY); }
+  // El resultado de ahora: el enviado (aún sin publicar; null si se borró) o el de la página.
+  function actual(p) { return p.enviado ? p.enviado.sets : p.r ? p.r.sets : null; }
+  function puedeBorrar(p) { return (editable(p) && !!actual(p)) || puedeBorrarGuardado(p); }
+
+  function botonResultado(p, i) {
+    if (editando === p) return '';
+    var texto = editable(p) ? (actual(p) ? 'Cambiar resultado' : 'Poner resultado') : puedeBorrarGuardado(p) ? 'Borrar el resultado guardado' : '';
+    if (!texto) return '';
+    return '<div class="acc"><button type="button" class="boton-p poner-res" id="pr-' + i + '" data-i="' + i + '">' + texto + '</button></div>';
+  }
+  // Borrar: primero se pregunta, aparte y más abajo.
+  function confirmarBorrar(i, quieto) {
+    return '<div class="er-confirma" id="er-confirma" tabindex="-1" role="group" aria-labelledby="er-confirma-t">' +
+      '<p id="er-confirma-t">¿Borrar el resultado de este partido?</p><div class="es-botones">' +
+      '<button type="button" class="boton principal er-borrar-si" id="er-borrar-si" data-i="' + i + '"' + quieto + '>Sí, borrarlo</button>' +
+      '<button type="button" class="boton er-borrar-no" id="er-borrar-no" data-i="' + i + '"' + quieto + '>No</button></div></div>';
+  }
+  // Los tantos del editor: [[local, visitante] x 3] como texto (lo escrito) o los del resultado.
+  function valoresEditor(p) {
+    if (escritos) return escritos;
+    var s = actual(p);
+    return [0, 1, 2].map(function (k) { return s ? [String(s[k][0]), String(s[k][1])] : ['', '']; });
+  }
+  function editorResultado(p, i) {
+    var aviso = p.aviso ? '<p class="aviso-res ' + (p.aviso.ok ? 'ok' : 'mal') + '"' + (editando === p ? ' id="er-aviso"' : ' id="av-' + i + '"') +
+      ' tabindex="-1">' + esc(p.aviso.texto) + '</p>' : '';
+    if (editando !== p) return aviso;
+    var quieto = enviando ? ' disabled' : '';
+    // Solo borrar (un resultado guardado que no cuenta, en un partido que no se puede editar).
+    if (!editable(p)) {
+      return '<div class="editor-res" id="er-caja" tabindex="-1" role="group" aria-labelledby="er-t">' +
+        '<p class="er-t" id="er-t">Resultado guardado que no cuenta</p>' +
+        '<p class="es-pista">' + (p.an ? 'El partido está anulado.' : 'Ya no es de los equipos que juegan este partido (mira los avisos de arriba).') + ' Puedes borrarlo.</p>' +
+        '<div class="es-botones"><button type="button" class="boton er-cancelar" data-i="' + i + '"' + quieto + '>Cancelar</button>' +
+        (borrarPedido ? '' : '<button type="button" class="boton er-borrar" id="er-borrar" data-i="' + i + '"' + quieto + '>Borrar resultado</button>') +
+        '</div>' + (borrarPedido ? confirmarBorrar(i, quieto) : '') + '</div>' + aviso;
+    }
+    var v = valoresEditor(p);
+    var nl = nombre(p.l.id), nv = nombre(p.v.id);
+    var h = '<div class="editor-res" id="er-caja" tabindex="-1" role="group" aria-labelledby="er-t">' +
+      '<p class="er-t" id="er-t">Tantos de cada set</p><table class="er-tabla"><thead><tr><th scope="col"><span class="sr-only">Set</span></th>' +
+      '<th scope="col">' + esc(nl) + '</th><th scope="col">' + esc(nv) + '</th></tr></thead><tbody>';
+    for (var k = 0; k < 3; k++) {
+      h += '<tr><th scope="row">Set ' + (k + 1) + ' <small>(a ' + D.max[k] + ')</small></th>';
+      for (var e = 0; e < 2; e++) {
+        h += '<td><input type="number" inputmode="numeric" min="0" max="' + D.max[k] + '" class="er-n" id="er-' + k + '-' + e + '" value="' + esc(v[k][e]) + '"' +
+          ' aria-label="Set ' + (k + 1) + ', ' + esc(e ? nv : nl) + '"' + quieto + '></td>';
+      }
+      h += '</tr>';
+    }
+    var pista = pistaEditor(p, leerValores(v));
+    h += '</tbody></table><p class="es-pista' + (pista.mal ? ' mal' : '') + '" id="er-pista" aria-live="polite">' + esc(pista.texto) + '</p>' +
+      '<div class="es-botones"><button type="button" class="boton principal er-guardar" data-i="' + i + '"' + (enviando || borrarPedido ? ' disabled>' : '>') +
+      (enviando ? 'Guardando…' : 'Guardar') + '</button>' +
+      '<button type="button" class="boton er-cancelar" data-i="' + i + '"' + quieto + '>Cancelar</button>' +
+      (puedeBorrar(p) && !borrarPedido ? '<button type="button" class="boton er-borrar" id="er-borrar" data-i="' + i + '"' + quieto + '>Borrar resultado</button>' : '') +
+      '</div>';
+    if (borrarPedido) h += confirmarBorrar(i, quieto);
+    return h + '</div>' + aviso;
+  }
+  // [[texto, texto] x 3] → { sets: [[n, n] x 3] } si valen; { falta } si queda algo por escribir; o { error }.
+  function leerValores(v) {
+    var k, sets = [];
+    for (k = 0; k < 3; k++) if (!String(v[k][0]).trim() || !String(v[k][1]).trim()) return { falta: true };
+    for (k = 0; k < 3; k++) {
+      var a = String(v[k][0]).trim(), b = String(v[k][1]).trim();
+      if (!/^\d{1,2}$/.test(a) || !/^\d{1,2}$/.test(b)) return { error: 'Set ' + (k + 1) + ': los tantos tienen que ser números enteros.' };
+      a = +a; b = +b;
+      if (a === b) return { error: 'Set ' + (k + 1) + ': no puede acabar empatado (con punto de oro, siempre gana alguien).' };
+      if (Math.max(a, b) > D.max[k]) return { error: 'Set ' + (k + 1) + ': como mucho a ' + D.max[k] + ' tantos.' };
+      sets.push([a, b]);
+    }
+    return { sets: sets };
+  }
+  // Debajo de los tantos: quién gana y, si cuenta para la clasificación, los puntos de liga de cada uno.
+  function pistaEditor(p, l) {
+    if (l.falta) return { texto: 'Escribe los tantos de los 3 sets (se juegan siempre los 3).', mal: false };
+    if (l.error) return { texto: l.error, mal: true };
+    var sl = 0, sv = 0, pl = 0, pv = 0;
+    l.sets.forEach(function (s) {
+      if (s[0] > s[1]) { sl++; pl += puntosSet(p.l.id, p.v.id); } else { sv++; pv += puntosSet(p.v.id, p.l.id); }
+    });
+    var t = 'Gana ' + (sl > sv ? nombre(p.l.id) : nombre(p.v.id)) + ', ' + Math.max(sl, sv) + '-' + Math.min(sl, sv) + '.';
+    if (p.cu) t += ' Puntos de liga: ' + nombre(p.l.id) + ' +' + pl + ', ' + nombre(p.v.id) + ' +' + pv + '.';
+    return { texto: t, mal: false };
+  }
+  function mostrarPista(pista) {
+    $('er-pista').textContent = pista.texto;
+    $('er-pista').classList.toggle('mal', pista.mal);
+  }
+  function camposEditor() {
+    var v = [];
+    for (var k = 0; k < 3; k++) v.push([String($('er-' + k + '-0').value || ''), String($('er-' + k + '-1').value || '')]);
+    return v;
+  }
+  function abrirEditor(p) {
+    if (!p || enviando || !(editable(p) || puedeBorrarGuardado(p))) return;
+    // Lo que se había escrito antes de que la llave dejara de valer (ver el 401), si lo hay.
+    editando = p; escritos = p.pendientes || null; p.pendientes = null; borrarPedido = false; p.aviso = null;
+    pintar(editable(p) ? 'er-0-0' : 'er-caja');
+  }
+  function cerrarEditor() {
+    var p = editando;
+    if (!p || enviando) return;
+    editando = null; escritos = null; borrarPedido = false;
+    pintar('pr-' + D.partidos.indexOf(p));
+  }
+  // Al cerrar el editor, el foco vuelve al botón de la fila; si ya no está (ya no hay nada que poner o borrar), al aviso.
+  function focoFila(p) {
+    var i = D.partidos.indexOf(p);
+    return editable(p) || puedeBorrarGuardado(p) ? 'pr-' + i : 'av-' + i;
+  }
+  function avisar(p, ok, texto, cerrar) {
+    enviando = false;
+    borrarPedido = false;
+    if (cerrar) { editando = null; escritos = null; }
+    p.aviso = { ok: ok, texto: texto };
+    pintar(cerrar ? focoFila(p) : 'er-caja');
+    $('estado').textContent = texto;
+  }
+  function errorGitHub(status) {
+    if (status === 403) {
+      return 'GitHub no deja guardar con esta llave (error 403): no se ha guardado. Puede que le falte el permiso «Actions: Read and write»: avisa a quien lleva la web.';
+    }
+    if (status === 404) return 'GitHub no encuentra la tarea de la liga o la llave ya no llega a ella (error 404): no se ha guardado. Avisa a quien lleva la web.';
+    if (status === 422) return 'GitHub no ha aceptado el resultado (error 422): no se ha guardado. Avisa a quien lleva la web.';
+    return 'GitHub no ha podido guardarlo: no se ha guardado. Prueba otra vez en un momento (error ' + status + ' de GitHub).';
+  }
+  // La llave usada ya no vale (401). Se borra del navegador solo si sigue siendo esa: si hay otra (puesta después en el
+  // calendario, con una contraseña nueva, mientras esta página seguía abierta), no se toca. Devuelve 'nueva' si esa
+  // otra vale aquí (y se usa), 'otra' si es de otra contraseña (hay que recargar la página) o '' si no hay ninguna.
+  function olvidarLlaveSiEs(usada) {
+    var guardada = '', de = '';
+    try { guardada = localStorage.getItem(CLAVE_LLAVE) || ''; de = localStorage.getItem(CLAVE_LLAVE_DE) || ''; } catch (e) { /* sin almacenamiento */ }
+    if (!guardada || guardada === usada || !RE_LLAVE.test(guardada)) { olvidarLlave(); return ''; }
+    llave = ''; llaveDe = ''; editando = null; escritos = null; borrarPedido = false;
+    if (!de || de === 'directa' || de === cifrada) { llave = guardada; llaveDe = de; return 'nueva'; }
+    return 'otra';
+  }
+  // sets: [[n, n] x 3], o null para borrar el resultado («borrar»: el workflow no borra con los tantos vacíos). Con
+  // los tantos van los equipos que enseña la página: si el cuadro ha cambiado desde que se abrió, el resultado se
+  // guarda para los que jugaron y no cuenta para otros (sale en los avisos).
+  function guardarResultado(p, sets) {
+    if (!p || enviando || !(sets ? editable(p) : puedeBorrar(p))) return;
+    if (navigator.onLine === false) { avisar(p, false, 'Sin conexión: no se ha guardado. Prueba otra vez cuando tengas internet.'); return; }
+    enviando = true;
+    p.aviso = null;   // el error de un intento anterior, fuera
+    pintar('er-caja');
+    $('estado').textContent = 'Guardando…';
+    var usada = llave, es = escritos;
+    var corte = window.AbortController ? new window.AbortController() : null;
+    var reloj = corte ? setTimeout(function () { corte.abort(); }, 20000) : null;
+    var cabeceras = cabecerasApi(usada);
+    cabeceras['Content-Type'] = 'application/json';
+    var entradas = { partido: p.id, sets: sets ? sets.map(function (s) { return s[0] + '-' + s[1]; }).join(' ') : 'borrar' };
+    if (sets) { entradas.local = p.l.id; entradas.visitante = p.v.id; } else {
+      // Lo enviado desde aquí (aún sin publicar: se guardó con estos equipos) o lo que trae la página.
+      entradas.antes = p.enviado && p.enviado.sets ? JSON.stringify([p.enviado.sets, p.l.id, p.v.id]) : (p.gu || '');
+    }
+    var opciones = { method: 'POST', headers: cabeceras, body: JSON.stringify({ ref: edicion.rama, inputs: entradas }) };
+    if (corte) opciones.signal = corte.signal;
+    function fin() { if (reloj !== null) clearTimeout(reloj); }
+    fetch(urlWorkflow() + '/dispatches', opciones).then(function (r) {
+      fin();
+      if (r.ok) {
+        p.enviado = { sets: sets };
+        avisar(p, true, '✓ Enviado: ' + (sets ? textoSets(sets) : 'resultado borrado') +
+          '. En 2 o 3 minutos estará en la web, con la clasificación al día (recarga entonces). Si no aparece, avisa a quien lleva la web.', true);
+      } else if (r.status === 401) {
+        enviando = false;
+        var hay = olvidarLlaveSiEs(usada), t;
+        if (hay === 'nueva') {
+          // En este navegador ya había otra llave, que vale: el editor sigue abierto, con lo escrito (o con la pregunta
+          // de borrar), para hacerlo con ella.
+          editando = p; escritos = es; borrarPedido = !sets;
+          t = 'La llave de antes ya no valía, pero en este navegador hay una nueva: pulsa ' + (sets ? 'Guardar' : '«Sí, borrarlo»') + ' otra vez.';
+          p.aviso = { ok: false, texto: t };
+          pintarEntrenador();
+          pintar(sets ? 'er-caja' : 'er-confirma');
+        } else {
+          t = hay === 'otra' ? 'Hay otra llave guardada en este navegador, de otra contraseña: recarga la página; si sigue igual, avisa a quien lleva la web. No se ha guardado.'
+            : 'La llave ya no vale (ha caducado o la han cambiado): no se ha guardado. ' + (cifrada ? 'Vuelve a escribir la contraseña' : 'Pega una llave nueva') +
+              ' en «Modo entrenador», aquí abajo; lo que has escrito se queda.';
+          // Lo escrito se guarda en el partido, para cuando se vuelva a entrar (abrirEditor); el aviso se quita entonces.
+          if (sets) p.pendientes = es;
+          p.aviso = { ok: false, texto: t, llave: true };
+          $('llave-msg').textContent = '';
+          if (hay !== 'otra') $('entrenador').open = true;
+          pintarEntrenador();
+          pintar(hay === 'otra' ? focoFila(p) : 'llave');
+        }
+        $('estado').textContent = t;
+      } else avisar(p, false, errorGitHub(r.status));
+    }, function () {
+      fin();
+      avisar(p, false, 'No se sabe si se ha guardado: no hay conexión o GitHub no contesta. Mira la web en unos minutos o prueba otra vez (repetirlo no duplica nada).');
+    });
+  }
+  function pulsarGuardar() {
+    var p = editando;
+    if (!p || enviando || borrarPedido || !editable(p)) return;
+    escritos = camposEditor();
+    var l = leerValores(escritos);
+    if (l.falta || l.error) {
+      var t = l.falta ? 'Faltan tantos: escribe los de los 3 sets.' : l.error;
+      mostrarPista({ texto: t, mal: true });
+      $('estado').textContent = t;
+      return;
+    }
+    var antes = actual(p);
+    if (antes && JSON.stringify(antes) === JSON.stringify(l.sets)) { avisar(p, true, 'Es el mismo resultado: no hay nada que cambiar.', true); return; }
+    guardarResultado(p, l.sets);
+  }
+  // Borrar: primero se pregunta, aparte (un doble toque no la contesta: ev.detail cuenta los clics seguidos).
+  function pulsarBorrar(ev) {
+    if (!editando || enviando || (ev && ev.detail > 1)) return;
+    if (editable(editando)) escritos = camposEditor();
+    editando.aviso = null;
+    borrarPedido = true;
+    pintar('er-confirma');
+  }
+  function pulsarBorrarSi(ev) {
+    if (!editando || !borrarPedido || (ev && ev.detail > 1)) return;
+    guardarResultado(editando, null);
+  }
+  function pulsarBorrarNo() {
+    if (!editando || enviando) return;
+    borrarPedido = false;
+    pintar('er-borrar');
+  }
+
+  // El panel «Modo entrenador», al final de la página.
+  function pintarEntrenador() {
+    $('entrenador').classList.toggle('oculto', !edicion);
+    if (!edicion) return;
+    $('entrenador-texto').textContent = llave
+      ? 'Activado en este navegador: en los partidos ya jugados sale «Poner resultado». Lo que guardes estará en la web en 2 o 3 minutos.'
+      : 'Para poner los resultados desde esta página, ' + (cifrada ? 'escribe la contraseña de entrenador que te ha pasado el club (la misma del calendario).' : 'pega la llave que te ha pasado el club.') +
+        ' Se guarda solo en este navegador.' +
+        (llaveOtra ? ' (Aquí hay guardada una llave de otra contraseña: si os la han cambiado en el calendario y aquí no entra, avisa a quien lleva la web.)' : '');
+    $('llave').placeholder = cifrada ? 'Contraseña' : 'Pega aquí la llave';
+    $('llave-fila').classList.toggle('oculto', !!llave);
+    $('quitar-llave').classList.toggle('oculto', !llave);
+  }
+  // Antes de guardarla, la llave se comprueba con GitHub (solo mira el workflow: no lanza nada).
+  function verificarLlave(l, de) {
+    var msg = $('llave-msg');
+    msg.textContent = 'Comprobando la llave…';
+    var corte = window.AbortController ? new window.AbortController() : null;
+    var reloj = corte ? setTimeout(function () { corte.abort(); }, 20000) : null;
+    var opciones = { headers: cabecerasApi(l) };
+    if (corte) opciones.signal = corte.signal;
+    function fin() { if (reloj !== null) clearTimeout(reloj); }
+    fetch(urlWorkflow(), opciones).then(function (r) {
+      fin();
+      if (!r.ok) {
+        msg.textContent = r.status === 401 ? 'La llave no vale o ha caducado. Pide una nueva al club.'
+          : 'La llave no da acceso a la liga del club (error ' + r.status + '). Pide una nueva al club.';
+        return;
+      }
+      llave = l; llaveDe = de;
+      // Si en el navegador hay una llave de otra contraseña (la del calendario), no se pisa: esta vale solo en esta visita.
+      var otraDe = '';
+      try { otraDe = localStorage.getItem(CLAVE_LLAVE) ? localStorage.getItem(CLAVE_LLAVE_DE) || '' : ''; } catch (e) { /* sin almacenamiento */ }
+      var soloAhora = !!otraDe && otraDe !== 'directa' && de !== 'directa' && otraDe !== de;
+      if (!soloAhora) {
+        try { localStorage.setItem(CLAVE_LLAVE, l); localStorage.setItem(CLAVE_LLAVE_DE, de); } catch (e) { /* sin almacenamiento: vale mientras siga abierta */ }
+      }
+      // «La llave ya no vale» de los partidos, fuera (lo que se había escrito sigue en el partido: p.pendientes).
+      D.partidos.forEach(function (x) { if (x.aviso && x.aviso.llave) x.aviso = null; });
+      $('llave').value = '';
+      msg.textContent = soloAhora
+        ? '✓ Llave aceptada, solo mientras tengas abierta esta página: la contraseña de aquí no es la del calendario. Avisa a quien lleva la web.'
+        : '✓ Llave aceptada: ya puedes poner resultados. Busca «Poner resultado» en la pestaña Partidos.';
+      pintarEntrenador();
+      pintar('llave-msg');   // el campo y su botón ya no están: el foco, en el mensaje
+    }, function () { fin(); msg.textContent = 'No se ha podido comprobar la llave (sin conexión o GitHub no contesta): prueba otra vez.'; });
+  }
+  var hayCifrado = !!(window.crypto && window.crypto.subtle && window.TextEncoder && window.TextDecoder);
+  function deB64(t) {
+    var s = atob(t.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice(0, (4 - t.length % 4) % 4));
+    var b = new Uint8Array(s.length);
+    for (var i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);
+    return b;
+  }
+  // Como en el calendario: PBKDF2-SHA-256 y AES-GCM (formato «v1.<vueltas>.<sal>.<iv>.<cifrado>», en base64url).
+  function descifrar(texto, contrasena) {
+    var m = RE_CIFRADA.exec(texto), sutil = window.crypto.subtle;
+    return sutil.importKey('raw', new TextEncoder().encode(contrasena), 'PBKDF2', false, ['deriveKey']).then(function (base) {
+      return sutil.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt: deB64(m[2]), iterations: +m[1] }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    }).then(function (k) {
+      return sutil.decrypt({ name: 'AES-GCM', iv: deB64(m[3]) }, k, deB64(m[4]));
+    }).then(function (b) { return new TextDecoder().decode(b); });
+  }
+  function comprobarLlave() {
+    var v = String($('llave').value || '').trim();
+    var msg = $('llave-msg');
+    if (RE_LLAVE.test(v)) { verificarLlave(v, 'directa'); return; }
+    if (!cifrada) { msg.textContent = 'Eso no parece una llave: empieza por «github_pat_». Cópiala entera del mensaje del club.'; return; }
+    if (!v) { msg.textContent = 'Escribe la contraseña que te ha pasado el club.'; return; }
+    if (!hayCifrado) { msg.textContent = 'Este navegador no puede comprobar la contraseña: prueba con otro (Chrome, Safari...).'; return; }
+    msg.textContent = 'Comprobando la contraseña…';
+    var junta = v.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (junta.length === 16) v = junta.match(/.{4}/g).join('-');
+    descifrar(cifrada, v).then(function (l) {
+      if (RE_LLAVE.test(l)) verificarLlave(l, cifrada);
+      else msg.textContent = 'Contraseña incorrecta: mira que esté bien escrita.';
+    }, function () { msg.textContent = 'Contraseña incorrecta: mira que esté bien escrita.'; });
+  }
+
+  // --- Lo que se pulsa ---------------------------------------------------------------------------------------
+  ['clas', 'partidos', 'normas'].forEach(function (s) {
+    $('tab-' + s).addEventListener('click', function () {
+      // El editor se cierra al dejar Partidos, salvo mientras se guarda (al volver sigue ahí, con lo que pase).
+      if (st.sec === 'partidos' && s !== 'partidos' && !enviando) { editando = null; escritos = null; borrarPedido = false; }
+      st.sec = s;
+      recordar();
+      pintar();
+    });
+  });
+  $('chips').addEventListener('click', function (ev) {
+    var b = ev.target.closest('.chip');
+    if (!b) return;
+    st.eq = b.getAttribute('data-eq') || '';
+    recordar();
+    pintar();
+    var n = st.sec === 'partidos' ? D.partidos.filter(delEquipo).length : 0;
+    $('estado').textContent = (st.eq ? 'Mi equipo: ' + nombre(st.eq) : 'Todos los equipos') + (n ? ', ' + n + ' partidos' : '');
+  });
+  function partidoDe(b) { var i = +b.getAttribute('data-i'); return D.partidos[i] || null; }
+  $('contenido').addEventListener('click', function (ev) {
+    var b;
+    if ((b = ev.target.closest('.poner-res'))) abrirEditor(partidoDe(b));
+    else if ((b = ev.target.closest('.er-cancelar'))) cerrarEditor();
+    else if ((b = ev.target.closest('.er-guardar'))) pulsarGuardar();
+    else if ((b = ev.target.closest('.er-borrar'))) pulsarBorrar(ev);
+    else if ((b = ev.target.closest('.er-borrar-si'))) pulsarBorrarSi(ev);
+    else if ((b = ev.target.closest('.er-borrar-no'))) pulsarBorrarNo();
+  });
+  // Mientras se escribe: quién gana y los puntos, debajo (sin repintar: no se pierde el foco); el error de antes, fuera.
+  $('contenido').addEventListener('input', function (ev) {
+    if (!editando || !ev.target.closest('.er-n')) return;
+    escritos = camposEditor();
+    if (editando.aviso) {
+      editando.aviso = null;
+      $('er-aviso').textContent = '';
+      $('er-aviso').classList.add('oculto');
+    }
+    mostrarPista(pistaEditor(editando, leerValores(escritos)));
+  });
+  $('contenido').addEventListener('keydown', function (ev) {
+    if (!editando) return;
+    if (ev.key === 'Enter' && ev.target.closest('.er-n')) { ev.preventDefault(); pulsarGuardar(); }
+    if (ev.key === 'Escape') { ev.preventDefault(); if (borrarPedido) pulsarBorrarNo(); else cerrarEditor(); }
+  });
+  pintarEntrenador();
+  $('guardar-llave').addEventListener('click', comprobarLlave);
+  $('llave').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); comprobarLlave(); } });
+  $('quitar-llave').addEventListener('click', function () {
+    olvidarLlave();
+    $('llave-msg').textContent = 'Llave quitada de este navegador.';
+    pintarEntrenador();
+    pintar('llave');
+  });
+
+  pintar();
+})();
+</script>
+</body>
+</html>

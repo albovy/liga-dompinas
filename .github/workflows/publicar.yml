@@ -1,0 +1,61 @@
+# Publica la web de la liga en GitHub Pages: genera la página (src/generar.js) con la liga y sus resultados.
+# Este archivo va en el repositorio como: .github/workflows/publicar.yml
+#
+# Lo lanzan los cambios subidos a main (la liga, a mano), el botón «Run workflow» y resultado.yml después de guardar
+# un resultado (lo llama: si la publicación falla, falla esa ejecución y GitHub avisa al dueño). Si la liga o sus
+# resultados no se pueden leer, falla y no publica nada: se queda la última página buena.
+
+name: Publicar la liga
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Una a la vez; la nueva cancela a la que siga en marcha: todas parten de lo último guardado (ver checkout), así que
+    # la última tiene todos los resultados.
+    concurrency:
+      group: pages
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      # La rama tal como está ahora, no el commit que lanzó la ejecución: también al repetir una ejecución vieja o desde
+      # resultado.yml (su commit es el de antes de guardar el resultado).
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # src/generar.js no tiene dependencias: no hace falta npm install.
+      - name: Generar la página
+        run: node src/generar.js --salida web
+
+      # La llave cifrada (la contraseña de los entrenadores) tiene que ser la del calendario: si alguien la cambió allí
+      # y no aquí, un aviso (sin parar la publicación).
+      - name: ¿La contraseña es la del calendario?
+        continue-on-error: true
+        run: node src/contrasena.js
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: web
+
+      - id: despliegue
+        uses: actions/deploy-pages@v5

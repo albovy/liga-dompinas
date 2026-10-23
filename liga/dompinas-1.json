@@ -1,0 +1,479 @@
+{
+  "nombre": "Liga Dompiñas I",
+  "temporada": "2026/27",
+  "categorias": {
+    "alevin": {
+      "nombre": "Alevín",
+      "nivel": 1
+    },
+    "infantil": {
+      "nombre": "Infantil",
+      "nivel": 2
+    },
+    "cadete": {
+      "nombre": "Cadete",
+      "nivel": 3
+    }
+  },
+  "equipos": [
+    {
+      "id": "cad20",
+      "nombre": "Cadete 20h",
+      "categoria": "cadete"
+    },
+    {
+      "id": "cadlag",
+      "nombre": "Cadete Lagoas",
+      "categoria": "cadete"
+    },
+    {
+      "id": "inflag",
+      "nombre": "Infantil Lagoas",
+      "categoria": "infantil"
+    },
+    {
+      "id": "infb",
+      "nombre": "Infantil B",
+      "categoria": "infantil"
+    },
+    {
+      "id": "infc",
+      "nombre": "Infantil C",
+      "categoria": "infantil"
+    },
+    {
+      "id": "alerem",
+      "nombre": "Alevín Remedios",
+      "categoria": "alevin"
+    }
+  ],
+  "puntosMaxSet": [
+    25,
+    25,
+    15
+  ],
+  "desempates": [],
+  "clasificacionFinal": [
+    {
+      "ganador": "P36"
+    },
+    {
+      "perdedor": "P36"
+    },
+    {
+      "ganador": "P35"
+    },
+    {
+      "perdedor": "P35"
+    },
+    {
+      "ganador": "P33"
+    },
+    {
+      "perdedor": "P33"
+    }
+  ],
+  "normas": [
+    "Partidos por tiempo: 5 min de calentamiento, 1.er set de 15 min, 2.º set de 15 min y 3.er set de 10 min, con 5 min de margen. Turnos: 17:00, 18:10 y 19:20.",
+    "Se juegan siempre los 3 sets. Cada set, como mucho a 25 puntos (a 15 el 3.º).",
+    "Si se acaba el tiempo con empate, punto de oro.",
+    "Cambios a los 8 min de cada set (a los 5 min en el 3.º).",
+    "Rotación cada 2 saques.",
+    "Puntuación: cada set ganado vale 1 punto. Si lo gana el equipo de categoría menor, vale 1 más por cada categoría de diferencia: Cadete–Infantil, 2; Cadete–Alevín, 3; Infantil–Alevín, 2.",
+    "Empate a puntos en la clasificación: la diferencia de tantos; si siguen igualados, partido de desempate.",
+    "Playoffs: partido único, sin coeficiente de categoría (pasa quien gana más sets). Semifinales 1.º–4.º y 2.º–3.º; el 5.º y el 6.º juegan por el 5.º puesto."
+  ],
+  "partidos": [
+    {
+      "id": "P1",
+      "jornada": 1,
+      "fecha": "2026-11-06",
+      "hora": "17:00",
+      "fin": "18:00",
+      "local": "cad20",
+      "visitante": "alerem",
+      "fase": "Fase Regular - 1.ª Vuelta"
+    },
+    {
+      "id": "P2",
+      "jornada": 1,
+      "fecha": "2026-11-06",
+      "hora": "18:10",
+      "fin": "19:10",
+      "local": "cadlag",
+      "visitante": "infc",
+      "fase": "Fase Regular - 1.ª Vuelta"
+    },
+    {
+      "id": "P3",
+      "jornada": 1,
+      "fecha": "2026-11-06",
+      "hora": "19:20",
+      "fin": "20:20",
+      "local": "inflag",
+      "visitante": "infb",
+      "fase": "Fase Regular - 1.ª Vuelta"
+    },
+    {
+      "id": "P4",
+      "jornada": 2,
+      "fecha": "2026-11-20",
+      "hora": "17:00",
+      "fin": "18:00",
+      "local": "alerem",
+      "visitante": "infb",
+      "fase": "Fase Regular - 1.ª Vuelta"
+    },
+    {
+      "id": "P5",
+      "jornada": 2,
+      "fecha": "2026-11-20",
+      "hora": "18:10",
+      "fin": "19:10",
+      "local": "infc",
+      "visitante": "inflag",
+      "fase": "Fase Regular - 1.ª Vuelta"
+    },
+    {
+      "id": "P6",
+      "jornada": 2,
+      "fecha": "2026-11-20",
+      "hora": "19:20",
+      "fin": "20:20",
+      "local": "cad20",
+      "visitante": "cadlag",
+      "fase": "Fase Regular - 1.ª Vuelta"
+    },
+    {
+      "id": "P7",
+      "jornada": 3,
+      "fecha": "2026-12-04",
+      "hora": "17:00",
+      "fin": "18:00",
+      "local": "cadlag",
+      "visitante": "alerem",
+      "fase": "Fase Regular - 1.ª Vuelta"
+    },
+    {
+      "id": "P8",
+      "jornada": 3,
+      "fecha": "2026-12-04",
+      "hora": "18:10",
+      "fin": "19:10",
+      "local": "inflag",
+      "visitante": "cad20",
+      "fase": "Fase Regular - 1.ª Vuelta"
+    },
+    {
+      "id": "P9",
+      "jornada": 3,
+      "fecha": "2026-12-04",
+      "hora": "19:20",
+      "fin": "20:20",
+      "local": "infb",
+      "visitante": "infc",
+      "fase": "Fase Regular - 1.ª Vuelta"
+    },
+    {
+      "id": "P10",
+      "jornada": 4,
+      "fecha": "2026-12-18",
+      "hora": "17:00",
+      "fin": "18:00",
+      "local": "alerem",
+      "visitante": "infc",
+      "fase": "Fase Regular - 1.ª Vuelta"
+    },
+    {
+      "id": "P11",
+      "jornada": 4,
+      "fecha": "2026-12-18",
+      "hora": "18:10",
+      "fin": "19:10",
+      "local": "cad20",
+      "visitante": "infb",
+      "fase": "Fase Regular - 1.ª Vuelta"
+    },
+    {
+      "id": "P12",
+      "jornada": 4,
+      "fecha": "2026-12-18",
+      "hora": "19:20",
+      "fin": "20:20",
+      "local": "cadlag",
+      "visitante": "inflag",
+      "fase": "Fase Regular - 1.ª Vuelta"
+    },
+    {
+      "id": "P13",
+      "jornada": 5,
+      "fecha": "2027-01-15",
+      "hora": "17:00",
+      "fin": "18:00",
+      "local": "inflag",
+      "visitante": "alerem",
+      "fase": "Fase Regular - 1.ª Vuelta"
+    },
+    {
+      "id": "P14",
+      "jornada": 5,
+      "fecha": "2027-01-15",
+      "hora": "18:10",
+      "fin": "19:10",
+      "local": "infb",
+      "visitante": "cadlag",
+      "fase": "Fase Regular - 1.ª Vuelta"
+    },
+    {
+      "id": "P15",
+      "jornada": 5,
+      "fecha": "2027-01-15",
+      "hora": "19:20",
+      "fin": "20:20",
+      "local": "infc",
+      "visitante": "cad20",
+      "fase": "Fase Regular - 1.ª Vuelta"
+    },
+    {
+      "id": "P16",
+      "jornada": 6,
+      "fecha": "2027-01-29",
+      "hora": "17:00",
+      "fin": "18:00",
+      "local": "alerem",
+      "visitante": "cad20",
+      "fase": "Fase Regular - 2.ª Vuelta"
+    },
+    {
+      "id": "P17",
+      "jornada": 6,
+      "fecha": "2027-01-29",
+      "hora": "18:10",
+      "fin": "19:10",
+      "local": "infc",
+      "visitante": "cadlag",
+      "fase": "Fase Regular - 2.ª Vuelta"
+    },
+    {
+      "id": "P18",
+      "jornada": 6,
+      "fecha": "2027-01-29",
+      "hora": "19:20",
+      "fin": "20:20",
+      "local": "infb",
+      "visitante": "inflag",
+      "fase": "Fase Regular - 2.ª Vuelta"
+    },
+    {
+      "id": "P19",
+      "jornada": 7,
+      "fecha": "2027-02-12",
+      "hora": "17:00",
+      "fin": "18:00",
+      "local": "infb",
+      "visitante": "alerem",
+      "fase": "Fase Regular - 2.ª Vuelta"
+    },
+    {
+      "id": "P20",
+      "jornada": 7,
+      "fecha": "2027-02-12",
+      "hora": "18:10",
+      "fin": "19:10",
+      "local": "inflag",
+      "visitante": "infc",
+      "fase": "Fase Regular - 2.ª Vuelta"
+    },
+    {
+      "id": "P21",
+      "jornada": 7,
+      "fecha": "2027-02-12",
+      "hora": "19:20",
+      "fin": "20:20",
+      "local": "cadlag",
+      "visitante": "cad20",
+      "fase": "Fase Regular - 2.ª Vuelta"
+    },
+    {
+      "id": "P22",
+      "jornada": 8,
+      "fecha": "2027-02-26",
+      "hora": "17:00",
+      "fin": "18:00",
+      "local": "alerem",
+      "visitante": "cadlag",
+      "fase": "Fase Regular - 2.ª Vuelta"
+    },
+    {
+      "id": "P23",
+      "jornada": 8,
+      "fecha": "2027-02-26",
+      "hora": "18:10",
+      "fin": "19:10",
+      "local": "cad20",
+      "visitante": "inflag",
+      "fase": "Fase Regular - 2.ª Vuelta"
+    },
+    {
+      "id": "P24",
+      "jornada": 8,
+      "fecha": "2027-02-26",
+      "hora": "19:20",
+      "fin": "20:20",
+      "local": "infc",
+      "visitante": "infb",
+      "fase": "Fase Regular - 2.ª Vuelta"
+    },
+    {
+      "id": "P25",
+      "jornada": 9,
+      "fecha": "2027-03-12",
+      "hora": "17:00",
+      "fin": "18:00",
+      "local": "infc",
+      "visitante": "alerem",
+      "fase": "Fase Regular - 2.ª Vuelta"
+    },
+    {
+      "id": "P26",
+      "jornada": 9,
+      "fecha": "2027-03-12",
+      "hora": "18:10",
+      "fin": "19:10",
+      "local": "infb",
+      "visitante": "cad20",
+      "fase": "Fase Regular - 2.ª Vuelta"
+    },
+    {
+      "id": "P27",
+      "jornada": 9,
+      "fecha": "2027-03-12",
+      "hora": "19:20",
+      "fin": "20:20",
+      "local": "inflag",
+      "visitante": "cadlag",
+      "fase": "Fase Regular - 2.ª Vuelta"
+    },
+    {
+      "id": "P28",
+      "jornada": 10,
+      "fecha": "2027-03-26",
+      "hora": "17:00",
+      "fin": "18:00",
+      "local": "alerem",
+      "visitante": "inflag",
+      "fase": "Fase Regular - 2.ª Vuelta"
+    },
+    {
+      "id": "P29",
+      "jornada": 10,
+      "fecha": "2027-03-26",
+      "hora": "18:10",
+      "fin": "19:10",
+      "local": "cadlag",
+      "visitante": "infb",
+      "fase": "Fase Regular - 2.ª Vuelta"
+    },
+    {
+      "id": "P30",
+      "jornada": 10,
+      "fecha": "2027-03-26",
+      "hora": "19:20",
+      "fin": "20:20",
+      "local": "cad20",
+      "visitante": "infc",
+      "fase": "Fase Regular - 2.ª Vuelta"
+    },
+    {
+      "id": "P31",
+      "jornada": 11,
+      "fecha": "2027-04-09",
+      "hora": "17:00",
+      "fin": "18:00",
+      "local": {
+        "puesto": 1
+      },
+      "visitante": {
+        "puesto": 4
+      },
+      "fase": "Semifinales",
+      "nombre": "Semifinal 1"
+    },
+    {
+      "id": "P32",
+      "jornada": 11,
+      "fecha": "2027-04-09",
+      "hora": "18:10",
+      "fin": "19:10",
+      "local": {
+        "puesto": 2
+      },
+      "visitante": {
+        "puesto": 3
+      },
+      "fase": "Semifinales",
+      "nombre": "Semifinal 2"
+    },
+    {
+      "id": "P33",
+      "jornada": 11,
+      "fecha": "2027-04-09",
+      "hora": "19:20",
+      "fin": "20:20",
+      "local": {
+        "puesto": 5
+      },
+      "visitante": {
+        "puesto": 6
+      },
+      "fase": "Semifinales",
+      "nombre": "Puesto 5.º y 6.º"
+    },
+    {
+      "id": "P34",
+      "jornada": 12,
+      "fecha": "2027-04-23",
+      "hora": "17:00",
+      "fin": "18:00",
+      "local": {
+        "puesto": 5
+      },
+      "visitante": {
+        "puesto": 6
+      },
+      "fase": "Fase Final",
+      "nombre": "Confraternización",
+      "amistoso": true
+    },
+    {
+      "id": "P35",
+      "jornada": 12,
+      "fecha": "2027-04-23",
+      "hora": "18:10",
+      "fin": "19:10",
+      "local": {
+        "perdedor": "P31"
+      },
+      "visitante": {
+        "perdedor": "P32"
+      },
+      "fase": "Fase Final",
+      "nombre": "Puesto 3.º y 4.º"
+    },
+    {
+      "id": "P36",
+      "jornada": 12,
+      "fecha": "2027-04-23",
+      "hora": "19:20",
+      "fin": "20:20",
+      "local": {
+        "ganador": "P31"
+      },
+      "visitante": {
+        "ganador": "P32"
+      },
+      "fase": "Fase Final",
+      "nombre": "Gran final"
+    }
+  ]
+}
