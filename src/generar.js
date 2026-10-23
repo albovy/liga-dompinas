@@ -9,7 +9,8 @@
 //   liga        { "archivo": "liga/dompinas-1.json" }: la liga que se publica.
 //   edicion     { "repo": "dueño/repositorio", "cifrada": "v1...." }: poner resultados desde la página (la llave
 //               cifrada con la contraseña de los entrenadores: la misma que en el calendario). Sin ella, no se puede.
-//   calendario  La dirección de la web del calendario del club (el botón «Calendario»). Opcional.
+//   calendario  La dirección de la web del calendario del club: al publicar se comprueba que la contraseña de los
+//               entrenadores es la misma (src/contrasena.js). No sale en la página. Opcional.
 //
 // Si la liga o sus resultados no se pueden leer, error y nada: se queda publicada la última página buena.
 
@@ -44,12 +45,12 @@ export function configEdicion(cfg) {
   return { repo, workflow, rama, ...(RE_CIFRADA.test(cifrada) ? { cifrada } : {}) };
 }
 
-// config.json › calendario: una dirección https, o '' (sin botón).
+// config.json › calendario: una dirección https, o '' (no se compara la contraseña).
 export function configCalendario(cfg) {
   const url = txt(campo(cfg, 'calendario')).trim();
   if (!url) return '';
   if (/^https:\/\/[^\s"'<>\\]+$/.test(url)) return url;
-  aviso('config.json: "calendario" tiene que ser una dirección https://...; la página sale sin el botón «Calendario».');
+  aviso('config.json: "calendario" tiene que ser una dirección https://...; no se comprueba que la contraseña sea la del calendario.');
   return '';
 }
 
@@ -68,8 +69,7 @@ export function generar({ config = 'config.json', salida = 'web', ahora = new Da
   const liga = leerLiga(rutaLiga);
   const resultados = leerResultados(rutaResultados(rutaLiga), { estricto: true });
   const { html, avisos } = crearPagina({
-    liga, resultados, club, generado: ahoraMadrid(ahora), edicion: configEdicion(cfg), calendario: configCalendario(cfg),
-    rutaEscudo: join(carpeta, 'escudo.png'),
+    liga, resultados, club, generado: ahoraMadrid(ahora), edicion: configEdicion(cfg), rutaEscudo: join(carpeta, 'escudo.png'),
   });
   const dir = resolve(salida);
   mkdirSync(dir, { recursive: true });

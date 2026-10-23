@@ -9,7 +9,6 @@ import { codificarHtml, crearPagina } from '../src/pagina.js';
 const PLANTILLA = readFileSync(new URL('../src/plantilla.html', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
 const LIGA = leerLiga(new URL('../liga/dompinas-1.json', import.meta.url));
 const GENERADO = new Date(Date.UTC(2026, 10, 6, 21, 0));   // de pared (hora de Galicia)
-const CALENDARIO = 'https://albovy.github.io/calendario-dompavolei/';
 const EDICION = { repo: 'albovy/liga-dompinas', workflow: 'resultado.yml', rama: 'main' };
 const INICIO_DATOS = '<script id="datos" type="application/json">';
 
@@ -20,7 +19,7 @@ function jsonDe(html) {
 function datosDe(html) { return JSON.parse(jsonDe(html)); }
 function veces(texto, trozo) { return texto.split(trozo).length - 1; }
 function pagina(opciones = {}) {
-  return crearPagina({ liga: LIGA, resultados: {}, club: 'DOMPAVOLEI', generado: GENERADO, calendario: CALENDARIO, edicion: null, ...opciones });
+  return crearPagina({ liga: LIGA, resultados: {}, club: 'DOMPAVOLEI', generado: GENERADO, edicion: null, ...opciones });
 }
 
 test('plantilla.html: un solo __TITULO__, __APP__ y __DATOS__, sin indexar, y el código sin errores de sintaxis', () => {
@@ -39,9 +38,10 @@ test('crearPagina: la liga calculada (clasificación, partidos con puntos, cruce
   const { html, avisos } = pagina({ resultados });
   assert.match(html, /<title>Liga Dompi&#241;as I &#183; DOMPAVOLEI &#183; 2026\/27<\/title>/);
   const d = datosDe(html);
-  assert.deepEqual(Object.keys(d), ['club', 'nombre', 'temporada', 'generado', 'calendario', 'cats', 'equipos', 'max', 'normas', 'clas', 'partidos', 'final', 'terminada', 'edicion', 'avisos', 'escudo']);
+  assert.deepEqual(Object.keys(d), ['club', 'nombre', 'temporada', 'generado', 'cats', 'equipos', 'max', 'normas', 'clas', 'partidos', 'final', 'terminada', 'edicion', 'avisos', 'escudo']);
   assert.equal(d.generado, '06/11/2026 21:00');
-  assert.equal(d.calendario, CALENDARIO);
+  // Sin enlace a la web del calendario (es aparte).
+  assert.doesNotMatch(html, /id="volver"|github\.io\/calendario-dompavolei/);
   assert.deepEqual(d.cats.cadete, { n: 'Cadete', nv: 3 });
   assert.deepEqual(d.max, [25, 25, 15]);
   // P1: Cadete 20h 2-1 Alevín Remedios: 2 sets del cadete (1 punto cada uno) y 1 del alevín (3 puntos).

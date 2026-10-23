@@ -53,7 +53,8 @@ página no se indexa (noindex). Publica sola, sin depender de la federación (el
 - `resultado.yml` necesita los tantos o `borrar` (vacío es un error: lanzado a mano sin ellos, no borra nada), y
   la página le manda también los equipos que enseñaba (`local`, `visitante`).
 - `config.json`: `club` (el mismo nombre que en el calendario), `liga` › `archivo`, `edicion` (`repo` y la llave
-  cifrada) y `calendario` (la dirección del botón «Calendario»).
+  cifrada) y `calendario` (la web del calendario: solo para comprobar al publicar que la contraseña es la misma;
+  sin enlaces entre las dos webs, a petición del usuario).
 
 ## Cómo se hace
 
@@ -79,7 +80,7 @@ página no se indexa (noindex). Publica sola, sin depender de la federación (el
   desempates (tantos; empate a desempatar con partido; `desempates`), cruces de playoffs provisionales y
   definitivos, ganador por sets (sin coeficiente),
   clasificación final, consola (guardar, borrar, entrada mala).
-- generar: `index.html` con sus datos, el modo entrenador y el botón del calendario; errores sin página.
+- generar: `index.html` con sus datos y el modo entrenador; errores sin página.
 - Página: pestañas, partidos con resultado y puntos, clasificación, cuadro, editor de resultado (solo con la
   llave), petición a GitHub.
 - Workflows: entradas, concurrencia, sin `${{ }}` en los `run:`.

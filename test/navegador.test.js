@@ -16,7 +16,6 @@ const LIGA = leerLiga(new URL('../liga/dompinas-1.json', import.meta.url));
 const unAnoAntes = (f) => `${+f.slice(0, 4) - 1}${f.slice(4)}`;
 const LIGA_PASADA = { ...LIGA, partidos: LIGA.partidos.map((p) => ({ ...p, fecha: unAnoAntes(p.fecha) })) };
 const GENERADO = new Date(Date.UTC(2026, 10, 6, 21, 0));   // de pared (hora de Galicia)
-const CALENDARIO = 'https://albovy.github.io/calendario-dompavolei/';
 const CLAVE = 'calendario-voley:DOMPAVOLEI';
 const CLAVE_LLAVE = `${CLAVE}:llave`;
 const LLAVE = `github_pat_PRUEBA_${'x'.repeat(40)}`;
@@ -29,7 +28,7 @@ const esperar = () => new Promise((listo) => { setImmediate(listo); });
 
 // Los datos de la página (los de pagina.js, tal cual van en ella).
 function datosLiga({ resultados = {}, edicion = null, liga = LIGA } = {}) {
-  const { html } = crearPagina({ liga, resultados, club: 'DOMPAVOLEI', generado: GENERADO, calendario: CALENDARIO, edicion });
+  const { html } = crearPagina({ liga, resultados, club: 'DOMPAVOLEI', generado: GENERADO, edicion });
   const ini = html.indexOf('<script id="datos" type="application/json">') + '<script id="datos" type="application/json">'.length;
   return JSON.parse(html.slice(ini, html.indexOf('</script>', ini)));
 }
@@ -87,8 +86,6 @@ test('liga: cabecera, pie y, sin resultados aún, los partidos por jornada (la 1
   const p = abrirLiga();
   assert.equal(p.porId('titulo').textContent, 'Liga Dompiñas I');
   assert.equal(p.porId('subtitulo').textContent, 'DOMPAVOLEI · temporada 2026/27');
-  assert.equal(p.porId('volver').href, CALENDARIO);
-  assert.equal(p.porId('volver').classList.contains('oculto'), false);
   assert.match(p.porId('pie').textContent, /actualizados el 06\/11\/2026 21:00/);
   assert.equal(p.porId('tab-partidos').getAttribute('aria-pressed'), 'true');
   assert.match(texto(p.contenido.innerHTML), /^Partidos Todos los equipos Jornada 1/);

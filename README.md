@@ -7,8 +7,7 @@ Infantil C y Alevín Remedios), temporada 2026/27.
 
 En la web se ven la **clasificación**, el cuadro de **playoffs**, los **partidos** de cada jornada con su resultado
 (se puede elegir «mi equipo») y las **normas**. No lleva nombres de jugadoras y no la indexan los buscadores. Es
-aparte del calendario del club (https://albovy.github.io/calendario-dompavolei/), al que lleva su botón
-«Calendario».
+aparte del calendario del club (https://albovy.github.io/calendario-dompavolei/), sin enlaces entre las dos.
 
 ## Reglas
 

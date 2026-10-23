@@ -55,9 +55,9 @@ function lado(x) {
   return { id: x.id, t: x.texto, ...(x.ahora ? { a: x.ahora } : {}) };
 }
 
-// Los datos de la página. edicion: { repo, workflow, rama, cifrada? } (config.json › edicion) o null; calendario: la
-// dirección de la web del calendario del club ('' sin enlace). Devuelve { datos, avisos }.
-export function datosPagina({ liga: L, resultados, club, generado, edicion = null, calendario = '' }) {
+// Los datos de la página. edicion: { repo, workflow, rama, cifrada? } (config.json › edicion) o null. Devuelve
+// { datos, avisos }.
+export function datosPagina({ liga: L, resultados, club, generado, edicion = null }) {
   const c = calcular(L, resultados);
   return {
     datos: {
@@ -65,7 +65,6 @@ export function datosPagina({ liga: L, resultados, club, generado, edicion = nul
       nombre: txt(L.nombre),
       temporada: txt(L.temporada),
       generado: fmt(generado, 'dd/MM/yyyy HH:mm'),
-      calendario: txt(calendario),
       cats: Object.fromEntries(Object.entries(L.categorias).map(([k, x]) => [k, { n: txt(x.nombre), nv: x.nivel }])),
       equipos: L.equipos.map((q) => ({ id: q.id, n: q.nombre, cat: q.categoria })),
       max: L.puntosMaxSet,

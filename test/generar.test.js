@@ -43,7 +43,7 @@ function datosDe(ruta) {
   return JSON.parse(html.slice(i, html.indexOf('</script>', i)));
 }
 
-test('generar: index.html con la liga, sus resultados, el modo entrenador y el botón del calendario', () => {
+test('generar: index.html con la liga, sus resultados y el modo entrenador (sin enlace al calendario)', () => {
   const dir = carpeta(CONFIG, JSON.stringify({ P1: { sets: [[25, 18], [20, 22], [15, 12]] } }));
   try {
     const [r] = enSilencio(() => generar({ config: join(dir, 'config.json'), salida: join(dir, 'web'), ahora: new Date('2026-11-06T20:30:00Z') }));
@@ -52,7 +52,8 @@ test('generar: index.html con la liga, sus resultados, el modo entrenador y el b
     assert.equal(d.club, 'DOMPAVOLEI');
     assert.equal(d.generado, '06/11/2026 21:30');   // hora de Galicia
     assert.deepEqual(d.edicion, { repo: 'albovy/liga-dompinas', workflow: 'resultado.yml', rama: 'main', cifrada: CIFRADA });
-    assert.equal(d.calendario, 'https://albovy.github.io/calendario-dompavolei/');
+    assert.equal(d.calendario, undefined);
+    assert.doesNotMatch(readFileSync(r.ruta, 'utf8'), /github\.io\/calendario-dompavolei/);
     assert.deepEqual(d.partidos.find((p) => p.id === 'P1').r.sets, [[25, 18], [20, 22], [15, 12]]);
     assert.match(d.escudo, /^data:image\/png;base64,/);
   } finally {
@@ -110,7 +111,7 @@ test('config.json: edicion (repo, workflow resultado.yml, rama main, la llave ci
   });
 });
 
-test('el config.json del repositorio: la liga del Excel, la llave del calendario y el botón del calendario', () => {
+test('el config.json del repositorio: la liga del Excel, la llave del calendario y su web (para comparar la contraseña)', () => {
   const cfg = JSON.parse(readFileSync(join(REPO, 'config.json'), 'utf8'));
   assert.equal(cfg.club, 'DOMPAVOLEI');   // el mismo nombre que en el calendario: comparten la llave del navegador
   assert.deepEqual(cfg.liga, { archivo: 'liga/dompinas-1.json' });
