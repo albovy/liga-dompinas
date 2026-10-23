@@ -170,6 +170,10 @@ main { display: block; padding-bottom: 32px; }
 
 /* Modo entrenador: avisos, botones, editor del resultado y lo que pasó al guardar (campos a 16 px o más: el iPhone
    no amplía la página al tocarlos). */
+/* Modo de prueba (?demo): se ve siempre arriba. */
+.aviso-demo { margin: 16px 0 0; padding: 10px 12px; border: 1.5px solid var(--agua-r); border-radius: 10px; font: 500 15px/1.35 var(--txt); }
+.aviso-demo b { font-weight: 700; }
+.aviso-demo a { color: var(--agua); font-weight: 600; }
 .avisos-ent { margin: 16px 0 0; padding: 10px 12px; border: 1.5px solid var(--ambar); border-radius: 10px; font-size: 15px; }
 .avisos-ent ul { margin: 4px 0 0; padding-left: 18px; }
 .avisos-t { margin: 0; font: 600 16px/1.2 var(--cond); letter-spacing: .03em; color: var(--ambar); }
@@ -268,6 +272,7 @@ footer p { margin: 0; }
       </div>
       <p class="llave-msg" id="llave-msg" role="status" tabindex="-1"></p>
       <button type="button" class="enlace-boton oculto" id="quitar-llave">Quitar la llave de este navegador</button>
+      <a class="enlace-boton" id="ir-demo" href="?demo">Probar el editor con partidos de prueba (no se guarda nada)</a>
     </details>
     <p id="pie"></p>
   </div>
@@ -308,6 +313,66 @@ footer p { margin: 0; }
   function dos(n) { return (n < 10 ? '0' : '') + n; }
   var ahora = new Date();
   var HOY = ahora.getFullYear() + '-' + dos(ahora.getMonth() + 1) + '-' + dos(ahora.getDate());
+
+  // --- Modo de prueba (?demo en la dirección) ---------------------------------------------------------------
+  // Para probar el editor de los entrenadores: la liga con las fechas movidas para que la jornada 3 sea hoy (la 1 y la
+  // 2 ya se jugaron) y resultados de mentira en la 1. Sin llave y sin guardar nada (no se manda nada a GitHub): lo que
+  // se pone o se borra solo cambia aquí, y la clasificación se calcula aquí mismo (por puntos, tantos y nombre).
+  var modoDemo = /(^|[?&])demo([=&]|$)/.test(String(location.search || '').replace(/^\?/, '')) || location.hash === '#demo';
+  function masDias(f, n) {
+    var d = dia(f);
+    d.setDate(d.getDate() + n);
+    return d.getFullYear() + '-' + dos(d.getMonth() + 1) + '-' + dos(d.getDate());
+  }
+  // El resultado de un partido con estos tantos (como liga.js): sets de cada uno, quién gana y, si cuenta, los puntos.
+  function resultadoDe(p, sets) {
+    var r = { sets: sets, sl: 0, sv: 0 };
+    if (p.cu) { r.pl = 0; r.pv = 0; }
+    sets.forEach(function (x) {
+      if (x[0] > x[1]) { r.sl++; if (p.cu) r.pl += puntosSet(p.l.id, p.v.id); } else { r.sv++; if (p.cu) r.pv += puntosSet(p.v.id, p.l.id); }
+    });
+    r.g = r.sl > r.sv ? 'local' : 'visitante';
+    return r;
+  }
+  function clasificacionDemo() {
+    var filas = {};
+    D.equipos.forEach(function (q) { filas[q.id] = { id: q.id, pj: 0, sg: 0, sp: 0, tf: 0, tc: 0, pts: 0, emp: false }; });
+    D.partidos.forEach(function (p) {
+      if (!p.cu || !p.r) return;
+      var fl = filas[p.l.id], fv = filas[p.v.id];
+      fl.pj++; fv.pj++;
+      fl.sg += p.r.sl; fl.sp += p.r.sv; fv.sg += p.r.sv; fv.sp += p.r.sl;
+      fl.pts += p.r.pl; fv.pts += p.r.pv;
+      p.r.sets.forEach(function (x) { fl.tf += x[0]; fl.tc += x[1]; fv.tf += x[1]; fv.tc += x[0]; });
+    });
+    var lista = D.equipos.map(function (q) { var x = filas[q.id]; x.dif = x.tf - x.tc; return x; });
+    lista.sort(function (a, b) { return b.pts - a.pts || b.dif - a.dif || (nombre(a.id) < nombre(b.id) ? -1 : 1); });
+    lista.forEach(function (x, i) { x.pos = i + 1; });
+    D.clas = lista;
+    // Quién ocuparía ahora cada puesto de los cruces.
+    D.partidos.forEach(function (p) {
+      [p.l, p.v].forEach(function (x) {
+        var m = !x.id && /^(\d+)\.º clasificado$/.exec(x.t);
+        if (m && lista[+m[1] - 1]) x.a = lista[+m[1] - 1].id;
+      });
+    });
+  }
+  if (modoDemo) {
+    var j3 = jornadas().filter(function (x) { return x.j === 3; })[0];   // con la fecha de la cabecera
+    var desfase = j3 ? Math.round((dia(HOY) - dia(j3.f)) / 86400000) : 0;
+    var DE_PRUEBA = [[[25, 18], [20, 25], [15, 12]], [[18, 25], [25, 23], [11, 15]], [[25, 20], [25, 22], [15, 9]]];
+    var n = 0;
+    D.partidos.forEach(function (p) {
+      p.f = masDias(p.f, desfase);
+      delete p.g; delete p.gu;
+      // Los cruces, sin decidir: «1.º clasificado», «Ganador de...» (con quién sería ahora en la prueba).
+      if (!p.reg) { p.l.id = null; p.v.id = null; delete p.l.a; delete p.v.a; }
+      // Resultados de mentira en la jornada 1, en sus partidos ya pasados (no en uno aplazado a más adelante).
+      p.r = p.j === 1 && p.cu && p.f < HOY ? resultadoDe(p, DE_PRUEBA[n++ % DE_PRUEBA.length]) : null;
+    });
+    D.final = null; D.terminada = false; D.avisos = [];
+    clasificacionDemo();
+  }
 
   // Los partidos que cuentan para la clasificación (ni amistosos ni anulados) y cuántos tienen ya resultado.
   var cuentan = D.partidos.filter(function (p) { return p.cu; });
@@ -362,7 +427,7 @@ footer p { margin: 0; }
   function lineaSets(p) { return p.r ? '<p class="sets">Sets: ' + textoSets(p.r.sets) + '</p>' : ''; }
   function pendiente(p) {
     if (!p.enviado) return '';
-    return '<p class="pendiente">Enviado, se publica en 2 o 3 minutos: ' + (p.enviado.sets ? textoSets(p.enviado.sets) : 'resultado borrado') + '.</p>';
+    return '<p class="pendiente">Enviado, se publica en 1 o 2 minutos: ' + (p.enviado.sets ? textoSets(p.enviado.sets) : 'resultado borrado') + '.</p>';
   }
 
   // Chips de equipos: se crean una vez y luego solo cambia su estado (así no se pierde el foco). chip-0: «Todos».
@@ -507,7 +572,9 @@ footer p { margin: 0; }
     ['clas', 'partidos', 'normas'].forEach(function (s) { $('tab-' + s).setAttribute('aria-pressed', String(st.sec === s)); });
     marcarChips();
     fijos.classList.toggle('oculto', st.sec === 'normas');
-    $('contenido').innerHTML = avisosEntrenador() + (st.sec === 'clas' ? htmlClasificacion() : st.sec === 'partidos' ? htmlPartidos() : htmlNormas());
+    var demo = modoDemo ? '<p class="aviso-demo" role="note"><b>Modo de prueba:</b> partidos y resultados de mentira (la jornada 3 es hoy) para ' +
+      'probar «Poner resultado». No se guarda nada. <a href="./">Volver a la liga</a></p>' : '';
+    $('contenido').innerHTML = demo + avisosEntrenador() + (st.sec === 'clas' ? htmlClasificacion() : st.sec === 'partidos' ? htmlPartidos() : htmlNormas());
     reservaFijos();
     if (foco && $(foco) && $(foco).focus) $(foco).focus();
   }
@@ -543,7 +610,8 @@ footer p { margin: 0; }
   function urlWorkflow() { return 'https://api.github.com/repos/' + edicion.repo + '/actions/workflows/' + encodeURIComponent(edicion.workflow); }
   function cabecerasApi(l) { return { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + l, 'X-GitHub-Api-Version': '2022-11-28' }; }
   // Se pone el resultado de los partidos ya jugados (de hoy hacia atrás) con sus dos equipos sabidos y no anulados.
-  function editable(p) { return !!(edicion && llave && p.l.id && p.v.id && !p.an && p.f <= HOY); }
+  // (En el modo de prueba, sin llave: no se manda nada.)
+  function editable(p) { return !!((modoDemo || (edicion && llave)) && p.l.id && p.v.id && !p.an && p.f <= HOY); }
   // Un resultado guardado que no cuenta (de otros equipos, de un partido anulado...; p.g) se puede borrar aunque el
   // partido no se pueda editar. Si ya se mandó algo, ya no hace falta.
   function puedeBorrarGuardado(p) { return !!(edicion && llave && p.g && !p.enviado && p.f <= HOY); }
@@ -691,6 +759,15 @@ footer p { margin: 0; }
   // guarda para los que jugaron y no cuenta para otros (sale en los avisos).
   function guardarResultado(p, sets) {
     if (!p || enviando || !(sets ? editable(p) : puedeBorrar(p))) return;
+    // Modo de prueba: solo aquí, al momento (con la clasificación), y nada a GitHub.
+    if (modoDemo) {
+      p.r = sets ? resultadoDe(p, sets) : null;
+      clasificacionDemo();
+      jugados = cuentan.filter(function (x) { return x.r; }).length;
+      avisar(p, true, (sets ? '✓ Puesto: ' + textoSets(sets) : '✓ Resultado borrado') +
+        '. Es de prueba: no se ha guardado nada. En la liga de verdad, estaría en la web en 1 o 2 minutos, con la clasificación al día.', true);
+      return;
+    }
     if (navigator.onLine === false) { avisar(p, false, 'Sin conexión: no se ha guardado. Prueba otra vez cuando tengas internet.'); return; }
     enviando = true;
     p.aviso = null;   // el error de un intento anterior, fuera
@@ -714,7 +791,7 @@ footer p { margin: 0; }
       if (r.ok) {
         p.enviado = { sets: sets };
         avisar(p, true, '✓ Enviado: ' + (sets ? textoSets(sets) : 'resultado borrado') +
-          '. En 2 o 3 minutos estará en la web, con la clasificación al día (recarga entonces). Si no aparece, avisa a quien lleva la web.', true);
+          '. En 1 o 2 minutos estará en la web, con la clasificación al día (recarga entonces). Si no aparece, avisa a quien lleva la web.', true);
       } else if (r.status === 401) {
         enviando = false;
         var hay = olvidarLlaveSiEs(usada), t;
@@ -780,10 +857,12 @@ footer p { margin: 0; }
 
   // El panel «Modo entrenador», al final de la página.
   function pintarEntrenador() {
-    $('entrenador').classList.toggle('oculto', !edicion);
-    if (!edicion) return;
+    // (En el modo de prueba, no: ahí no hace falta llave y no se toca la de verdad.)
+    $('entrenador').classList.toggle('oculto', !edicion || modoDemo);
+    $('ir-demo').classList.toggle('oculto', modoDemo);
+    if (!edicion || modoDemo) return;
     $('entrenador-texto').textContent = llave
-      ? 'Activado en este navegador: en los partidos ya jugados sale «Poner resultado». Lo que guardes estará en la web en 2 o 3 minutos.'
+      ? 'Activado en este navegador: en los partidos ya jugados sale «Poner resultado». Lo que guardes estará en la web en 1 o 2 minutos.'
       : 'Para poner los resultados desde esta página, ' + (cifrada ? 'escribe la contraseña de entrenador que te ha pasado el club (la misma del calendario).' : 'pega la llave que te ha pasado el club.') +
         ' Se guarda solo en este navegador.' +
         (llaveOtra ? ' (Aquí hay guardada una llave de otra contraseña: si os la han cambiado en el calendario y aquí no entra, avisa a quien lleva la web.)' : '');
@@ -842,6 +921,7 @@ footer p { margin: 0; }
     }).then(function (b) { return new TextDecoder().decode(b); });
   }
   function comprobarLlave() {
+    if (modoDemo) return;
     var v = String($('llave').value || '').trim();
     var msg = $('llave-msg');
     if (RE_LLAVE.test(v)) { verificarLlave(v, 'directa'); return; }
@@ -906,6 +986,7 @@ footer p { margin: 0; }
   $('guardar-llave').addEventListener('click', comprobarLlave);
   $('llave').addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); comprobarLlave(); } });
   $('quitar-llave').addEventListener('click', function () {
+    if (modoDemo) return;
     olvidarLlave();
     $('llave-msg').textContent = 'Llave quitada de este navegador.';
     pintarEntrenador();

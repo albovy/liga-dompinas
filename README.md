@@ -43,6 +43,11 @@ equipos que juegan ahora: los entrenadores lo ven en la página («Avisos para l
 publicación. Se vuelve a poner, o se borra. Desde una página abierta de antes no se pisa un resultado que cuenta ni se
 borra uno que ha cambiado entre medias: la tarea falla con «recarga la página» (en **Actions**) y no toca nada.
 
+**Para probarlo sin tocar la liga**: https://albovy.github.io/liga-dompinas/?demo (o el enlace «Probar el editor con
+partidos de prueba» del «Modo entrenador»). Las fechas se mueven para que la jornada 3 sea hoy, la 1 trae resultados de
+mentira y se puede poner, cambiar y borrar resultados (con la clasificación al momento) sin llave. No se guarda nada ni
+se manda nada a GitHub.
+
 ### La llave
 
 Es la del calendario: un token de GitHub de grano fino del dueño, con el permiso **Actions: Read and write**. Tiene que

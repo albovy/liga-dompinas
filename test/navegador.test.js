@@ -263,8 +263,8 @@ test('entrenador: el editor con los tres sets; mientras se escribe, quién gana 
   assert.deepEqual(cuerpo(p), { ref: 'main', inputs: { partido: 'P1', sets: '25-18 20-22 15-12', local: 'cad20', visitante: 'alerem' } });
   f = fila(p, 'P1');
   assert.doesNotMatch(f.html, /er-0-0/);   // editor cerrado
-  assert.match(texto(f.html), /Enviado, se publica en 2 o 3 minutos: 25-18 · 20-22 · 15-12\./);
-  assert.match(texto(f.html), /✓ Enviado: 25-18 · 20-22 · 15-12\. En 2 o 3 minutos estará en la web/);
+  assert.match(texto(f.html), /Enviado, se publica en 1 o 2 minutos: 25-18 · 20-22 · 15-12\./);
+  assert.match(texto(f.html), /✓ Enviado: 25-18 · 20-22 · 15-12\. En 1 o 2 minutos estará en la web/);
   assert.match(f.html, />Cambiar resultado</);
   assert.equal(p.doc.activeElement, p.porId(`pr-${i('P1')}`));
   assert.match(p.estado.textContent, /Enviado/);
@@ -608,4 +608,88 @@ test('entrenador: con una llave guardada de otra contraseña (la del calendario,
   assert.match(p.porId('llave-msg').textContent, /solo mientras tengas abierta esta página/);
   assert.equal(conBoton(p).length, 30);
   assert.deepEqual([p.almacen.get(CLAVE_LLAVE), p.almacen.get(`${CLAVE_LLAVE}-de`)], [OTRA, otraCifrada]);
+});
+
+// --- Modo de prueba (?demo) ------------------------------------------------------------------------------------------
+
+test('modo de prueba (?demo): la jornada 3 es hoy, la 1 con resultados de mentira; el editor sin llave y sin mandar nada', async () => {
+  // Hoy (DOM simulado): viernes 25/09/2026. Sin modo entrenador en config.json ni llave: igual se puede probar.
+  const p = abrirLiga({ busqueda: '?demo', guardado: { sec: 'partidos', eq: '' } });
+  assert.match(texto(p.contenido.innerHTML), /^Modo de prueba: partidos y resultados de mentira \(la jornada 3 es hoy\) para probar «Poner resultado»\. No se guarda nada\. Volver a la liga/);
+  assert.match(p.contenido.innerHTML, /Jornada 3 · viernes 25 de septiembre/);
+  assert.match(p.contenido.innerHTML, /Jornada 1 · viernes 28 de agosto/);
+  // Jornadas 1 a 3 (de hoy hacia atrás): con botón; la 1, con resultado.
+  assert.deepEqual(conBoton(p), ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9']);
+  assert.match(fila(p, 'P1').html, />Cambiar resultado</);
+  assert.match(texto(fila(p, 'P1').html), /Sets: 25-18 · 20-25 · 15-12/);
+  assert.match(fila(p, 'P4').html, />Poner resultado</);
+  // Poner uno: se ve al momento, con su aviso; nada a GitHub.
+  enContenido(p, 'poner-res', i('P4'));
+  escribirSets(p, GANA_V);
+  // (El set que gana el alevín a un infantil vale 2.)
+  assert.equal(p.porId('er-pista').textContent, 'Gana Infantil B, 2-1. Puntos de liga: Alevín Remedios +2, Infantil B +2.');
+  enContenido(p, 'er-guardar', i('P4'));
+  await esperar();
+  assert.equal(p.peticiones.length, 0);
+  let f = fila(p, 'P4');
+  assert.match(texto(f.html), /✓ Puesto: 18-25 · 22-20 · 12-15\. Es de prueba: no se ha guardado nada\./);
+  assert.match(texto(f.html), /Sets: 18-25 · 22-20 · 12-15/);
+  assert.match(f.html, />Cambiar resultado</);
+  // La clasificación, al día.
+  pulsar(p, 'tab-clas');
+  assert.match(texto(p.contenido.innerHTML), /Clasificación 4 de 30 partidos jugados/);
+  const infb = [...p.contenido.innerHTML.matchAll(/<tr class="[^"]*">([\s\S]*?)<\/tr>/g)].map((m) => texto(m[1])).find((t) => t.includes('Infantil B'));
+  assert.match(infb, /Infantil B 2 2 4 -6 2$/);   // P3 (perdido 0-3) y P4 (ganado 2-1): 2 jugados, 2 sets ganados, 4 perdidos, -6, 2 puntos
+  // Borrar uno: también solo aquí.
+  pulsar(p, 'tab-partidos');
+  enContenido(p, 'poner-res', i('P1'));
+  enContenido(p, 'er-borrar', i('P1'));
+  enContenido(p, 'er-borrar-si', i('P1'));
+  await esperar();
+  assert.equal(p.peticiones.length, 0);
+  f = fila(p, 'P1');
+  assert.match(texto(f.html), /✓ Resultado borrado\. Es de prueba/);
+  assert.match(f.html, />Poner resultado</);
+});
+
+test('modo de prueba: sin ?demo, la liga de verdad; con modo entrenador, el enlace para probar (que en la prueba no sale)', () => {
+  let p = abrirLiga({ edicion: EDICION, guardado: { sec: 'partidos', eq: '' } });
+  assert.doesNotMatch(p.contenido.innerHTML, /Modo de prueba/);
+  assert.deepEqual(conBoton(p), []);
+  assert.equal(p.porId('ir-demo').classList.contains('oculto'), false);
+  p = abrirLiga({ edicion: EDICION, busqueda: '?demo', guardado: { sec: 'partidos', eq: '' } });
+  assert.equal(p.porId('ir-demo').classList.contains('oculto'), true);
+  // Con llave, en la prueba tampoco se manda nada.
+  p = abrirLiga({ edicion: EDICION, llave: LLAVE, busqueda: '?demo', guardado: { sec: 'partidos', eq: '' }, red: () => respuesta(204) });
+  enContenido(p, 'poner-res', i('P7'));
+  escribirSets(p, GANA_L);
+  enContenido(p, 'er-guardar', i('P7'));
+  assert.equal(p.peticiones.length, 0);
+  assert.match(texto(fila(p, 'P7').html), /Es de prueba/);
+});
+
+test('modo de prueba: el panel del modo entrenador no sale; ni la contraseña ni «Quitar la llave» tocan la llave de verdad', () => {
+  const p = abrirLiga({ edicion: EDICION, llave: LLAVE, busqueda: '?demo', guardado: { sec: 'partidos', eq: '' }, red: () => respuesta(200) });
+  assert.equal(p.porId('entrenador').classList.contains('oculto'), true);
+  p.porId('llave').value = LLAVE;
+  p.porId('guardar-llave').oyentes.click({});
+  p.porId('quitar-llave').oyentes.click({});
+  assert.equal(p.peticiones.length, 0);
+  assert.equal(p.almacen.get(CLAVE_LLAVE), LLAVE);
+});
+
+test('modo de prueba: el cuadro, sin decidir aunque la liga de verdad ya lo tenga; un aplazado no lleva la jornada 3 atrás', () => {
+  // Liga de verdad acabada (con semifinales): en la prueba, los cruces vuelven a ser «1.º clasificado».
+  const resultados = {};
+  for (const x of LIGA.partidos.filter((q) => typeof q.local === 'string')) resultados[x.id] = { sets: ['P2', 'P3'].includes(x.id) ? GANA_V : GANA_L };
+  let p = abrirLiga({ resultados, busqueda: '?demo', guardado: { sec: 'partidos', eq: '' } });
+  assert.match(fila(p, 'P31').html, /1\.º clasificado<span class="ahora">ahora, /);
+  assert.ok(!conBoton(p).includes('P31'));
+  // P7 (jornada 3) aplazado al 8/1: la jornada 3 sigue siendo hoy (25/9) y la 4 no se puede tocar aún.
+  // P2 (jornada 1) aplazado al 11/12: sin resultado de mentira.
+  const liga = { ...LIGA, partidos: LIGA.partidos.map((x) => (x.id === 'P7' ? { ...x, fecha: '2027-01-08' } : x.id === 'P2' ? { ...x, fecha: '2026-12-11' } : x)) };
+  p = abrirLiga({ liga, busqueda: '?demo', guardado: { sec: 'partidos', eq: '' } });
+  assert.match(p.contenido.innerHTML, /Jornada 3 · viernes 25 de septiembre/);
+  assert.ok(!conBoton(p).some((id) => ['P10', 'P11', 'P12', 'P7'].includes(id)), conBoton(p).join());
+  assert.doesNotMatch(texto(fila(p, 'P2').html), /Sets:/);
 });
